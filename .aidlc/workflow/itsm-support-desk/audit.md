@@ -590,3 +590,5 @@
 - 23:20 Task 4.6 ปลดล็อก: contract Azure AI Foundry (Responses API) จาก template ผู้ใช้ · Vite middleware server/aiAssist.ts + azure.ts · integration.md, api-spec.md §2, tasks.md (Add-on)
 - 23:45 Task 4.6 verify กับ Azure จริง (gpt-5-4-mini): draft / navigate / unknown ผ่าน, AI panel เปิดฟอร์มกรอกให้ · tasks.md ติ๊ก 4.6
 - 23:55 เปลี่ยนภาพ top nav เป็นแถบแดงเข้ม + chevron: header-bg.webp ใหม่, ☰ และ wordmark ใส่ .on-brand (ตัวขาว) · AppLayout.tsx · design-system §9
+- 00:10 AI SDK ToolLoopAgent + model adapter (azure / bedrock) แทน fetch ใน middleware · contract browser เดิม · integration.md, api-spec.md §2, design.md (Add-on)
+- 00:40 verify ToolLoopAgent กับ Azure จริง: draft (tool loop 2 step ~1.7–2.8s) / navigate / unknown ผ่าน · 1 ครั้งเกิน 9s → 504 แล้ว browser fallback · searchServices ค้น keyword ไทยจาก fallback rules · test 238, e2e 3, bundle ไม่มี server deps

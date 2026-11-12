@@ -154,3 +154,6 @@ resetToSeed(): void;
 ```
 - Errors: `400` request ผิด · `405` ไม่ใช่ POST · `500` env ขาด (`AZURE_AI_ENDPOINT` / `AZURE_AI_DEPLOYMENT` / `AZURE_AI_KEY`) · `502` Azure ตอบ non-2xx หรือ output ไม่ใช่ JSON ตาม schema · `504` เกิน 9 วินาที · body error = `{ "error": "<code>" }` ไม่มีรายละเอียดภายใน
 - Azure upstream: `POST {AZURE_AI_ENDPOINT}/responses`, header `api-key`, body `{ model, instructions, input: text, text: { format: { type: "json_schema", name: "ai_assist", strict: true, schema } } }`
+
+### 2026-11-13 — §2 upstream ผ่าน AI SDK
+- shape request / response / error ของ `/api/ai/assist` คงเดิม · upstream ไม่ได้ POST `/responses` เองแล้ว — AI SDK provider เป็นผู้เรียก (Azure: Responses API ผ่าน `@ai-sdk/azure`) · ดู integration.md Add-on "AI SDK ToolLoopAgent"

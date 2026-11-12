@@ -1,48 +1,86 @@
 import { EventEmitter } from 'node:events';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { MockLanguageModelV4 } from 'ai/test';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import seed from '@/data/database.json';
-import {
-  buildAzureBody, buildInstructions, extractOutputText, handleAssist, parseAssistOutput,
-} from '../../../server/aiAssist';
+import { createAssistAgent } from '../../../server/ai/agent';
+import { ConfigMissingError, resolveModel, type AiEnv } from '../../../server/ai/model';
+import { ALLOWED_ROUTES, APP_STATIC_ROUTES, findServices } from '../../../server/ai/tools';
+import { handleAssist } from '../../../server/aiAssist';
 
-const VALID = { kind: 'draft', serviceDefinitionId: 'sdf_002', route: null, summary: 'Mouse เสีย' };
-const azureJson = (text: string) => ({
-  output: [
-    { type: 'reasoning', summary: [] },
-    { type: 'message', content: [{ type: 'output_text', text }] },
-  ],
+// Partial mock: the real resolveModel runs unless a test overrides one call; ConfigMissingError stays the same class
+vi.mock('../../../server/ai/model', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../server/ai/model')>();
+  return { ...actual, resolveModel: vi.fn(actual.resolveModel) };
 });
 
-describe('pure helpers', () => {
-  it('extractOutputText skips a leading reasoning item', () => {
-    expect(extractOutputText(azureJson('{"a":1}'))).toBe('{"a":1}');
-    expect(extractOutputText({ output: [{ type: 'reasoning' }] })).toBeNull();
-    expect(extractOutputText(null)).toBeNull();
+const VALID = { kind: 'draft', serviceDefinitionId: 'sdf_002', route: null, summary: 'Mouse เสีย' } as const;
+const usage = {
+  inputTokens: { total: 10, noCache: 10, cacheRead: undefined, cacheWrite: undefined },
+  outputTokens: { total: 5, text: 5, reasoning: undefined },
+};
+const toolCallStep = (query: string) => ({
+  content: [{ type: 'tool-call' as const, toolCallId: 'c1', toolName: 'searchServices', input: JSON.stringify({ query }) }],
+  finishReason: { unified: 'tool-calls' as const, raw: undefined },
+  usage,
+  warnings: [],
+});
+const textStep = (text: string) => ({
+  content: [{ type: 'text' as const, text }],
+  finishReason: { unified: 'stop' as const, raw: undefined },
+  usage,
+  warnings: [],
+});
+const mockModel = (...steps: ReturnType<typeof textStep | typeof toolCallStep>[]) => new MockLanguageModelV4({ doGenerate: steps });
+
+const AZURE: AiEnv = { AI_PROVIDER: 'azure', AI_MODEL: 'dep', AZURE_AI_ENDPOINT: 'https://r.services.ai.azure.com/openai/v1/', AZURE_AI_KEY: 'k-123' };
+const BEDROCK: AiEnv = { AI_PROVIDER: 'bedrock', AI_MODEL: 'anthropic.x', AWS_REGION: 'ap-southeast-1', AWS_ACCESS_KEY_ID: 'AKIA', AWS_SECRET_ACCESS_KEY: 's-456' };
+
+describe('resolveModel', () => {
+  it('builds an azure responses model and a bedrock model without network', () => {
+    const azure = resolveModel(AZURE);
+    expect(typeof azure).toBe('object');
+    expect(azure).toMatchObject({ modelId: 'dep' });
+    expect(resolveModel(BEDROCK)).toMatchObject({ modelId: 'anthropic.x' });
   });
 
-  it('parseAssistOutput keeps only the 4 fields and rejects bad JSON / missing or mistyped fields', () => {
-    expect(parseAssistOutput(JSON.stringify({ ...VALID, extra: 1 }))).toEqual(VALID);
-    expect(parseAssistOutput('not json')).toBeNull();
-    expect(parseAssistOutput(JSON.stringify({ kind: 'draft', serviceDefinitionId: 'x', route: null }))).toBeNull();
-    expect(parseAssistOutput(JSON.stringify({ ...VALID, kind: 'create' }))).toBeNull();
-    expect(parseAssistOutput(JSON.stringify({ ...VALID, route: 3 }))).toBeNull();
+  it('throws ConfigMissingError for an unknown provider or a missing var', () => {
+    expect(() => resolveModel({ ...AZURE, AI_PROVIDER: 'openai' })).toThrow(ConfigMissingError);
+    expect(() => resolveModel({ ...AZURE, AI_PROVIDER: undefined })).toThrow(ConfigMissingError);
+    expect(() => resolveModel({ ...AZURE, AI_MODEL: '' })).toThrow(ConfigMissingError);
+    expect(() => resolveModel({ ...AZURE, AZURE_AI_KEY: '' })).toThrow(ConfigMissingError);
+    expect(() => resolveModel({ ...BEDROCK, AWS_SECRET_ACCESS_KEY: undefined })).toThrow(ConfigMissingError);
+  });
+});
+
+describe('tools', () => {
+  it('searchServices finds seed ids for English / Thai queries, at most 10, empty for nonsense', () => {
+    expect(findServices('mouse').map((s) => s.id)).toContain('sdf_002');
+    expect(findServices('แจ้งปัญหา Mouse')[0]).toMatchObject({ id: 'sdf_002', name: expect.any(String), description: expect.any(String) });
+    expect(findServices('ขอ')).toHaveLength(10); // 49 seed hits, capped
+    expect(findServices('zzqx-nothing')).toEqual([]);
+    expect(findServices('เมาส์').map((s) => s.id)).toContain('sdf_002'); // Thai via fallback keywords
   });
 
-  it('buildAzureBody sends model, input = text and a strict json_schema', () => {
-    const body = buildAzureBody('gpt-x', 'INSTR', 'เมาส์เสีย');
-    expect(body).toMatchObject({ model: 'gpt-x', instructions: 'INSTR', input: 'เมาส์เสีย' });
-    expect(body.text.format).toMatchObject({ type: 'json_schema', name: 'ai_assist', strict: true });
-    expect(body.text.format.schema).toMatchObject({
-      additionalProperties: false, required: ['kind', 'serviceDefinitionId', 'route', 'summary'],
+  it('listRoutes only returns real static routes', () => {
+    expect(ALLOWED_ROUTES.length).toBeGreaterThan(0);
+    for (const r of ALLOWED_ROUTES) expect(APP_STATIC_ROUTES).toContain(r.route);
+    expect(ALLOWED_ROUTES.map((r) => r.route)).not.toContain('/answers');
+  });
+});
+
+describe('createAssistAgent', () => {
+  it('runs searchServices then returns the structured output in 2 steps', async () => {
+    const model = mockModel(toolCallStep('mouse'), textStep(JSON.stringify(VALID)));
+    const result = await createAssistAgent(model).generate({ prompt: 'เมาส์เสีย' });
+    expect(result.output).toEqual(VALID);
+    expect(result.steps).toHaveLength(2);
+    // step 2 saw the tool result, so the tool really ran
+    expect(JSON.stringify(model.doGenerateCalls[1]!.prompt)).toContain('sdf_002');
+    // strict-mode friendly schema: all 4 keys required, no extra keys
+    expect(model.doGenerateCalls[0]!.responseFormat).toMatchObject({
+      type: 'json',
+      schema: { required: ['kind', 'serviceDefinitionId', 'route', 'summary'], additionalProperties: false },
     });
-  });
-
-  it('buildInstructions lists services and only routes that are real pages', () => {
-    const text = buildInstructions(seed);
-    expect(text).toContain('sdf_002 | ');
-    expect(text).toContain('/calls/search | hints:');
-    expect(text).not.toContain('/answers');
   });
 });
 
@@ -61,13 +99,13 @@ function fakeRes() {
   return res as typeof res & ServerResponse;
 }
 
-const ENV = { AZURE_AI_ENDPOINT: 'https://r.services.ai.azure.com/openai/v1/', AZURE_AI_DEPLOYMENT: 'dep', AZURE_AI_KEY: 'k-123' };
-const call = async (req: IncomingMessage, env = ENV) => {
+const call = async (req: IncomingMessage, env = AZURE) => {
   const res = fakeRes();
   await handleAssist(req, res, env);
   return { status: res.statusCode, body: JSON.parse(res.body) as unknown };
 };
 const post = (b: unknown) => fakeReq('POST', JSON.stringify(b));
+const useModel = (m: MockLanguageModelV4) => vi.mocked(resolveModel).mockReturnValueOnce(m);
 
 describe('handleAssist', () => {
   beforeEach(() => {
@@ -86,27 +124,53 @@ describe('handleAssist', () => {
     expect((await call(post({ text: 'a'.repeat(1001), page: 'x' }))).status).toBe(400);
     expect((await call(post({ text: 'a', page: 'x'.repeat(61) }))).status).toBe(400);
     expect((await call(fakeReq('POST', 'x'.repeat(9000)))).status).toBe(400);
-    expect(await call(post({ text: 'a', page: 'x' }), { ...ENV, AZURE_AI_KEY: '' })).toEqual({ status: 500, body: { error: 'config_missing' } });
+    expect(await call(post({ text: 'a', page: 'x' }), { ...AZURE, AZURE_AI_KEY: '' })).toEqual({ status: 500, body: { error: 'config_missing' } });
+    expect(await call(post({ text: 'a', page: 'x' }), { ...AZURE, AI_PROVIDER: 'nope' })).toEqual({ status: 500, body: { error: 'config_missing' } });
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it('200 with the parsed object; calls {endpoint}/responses with the api-key header', async () => {
-    vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(azureJson(JSON.stringify(VALID)))));
+  it('200 with only the 4 fields after a tool step', async () => {
+    useModel(mockModel(toolCallStep('mouse'), textStep(JSON.stringify({ ...VALID, extra: 1 }))));
     expect(await call(post({ text: ' เมาส์เสีย ', page: 'My Space' }))).toEqual({ status: 200, body: VALID });
-    const [url, init] = vi.mocked(fetch).mock.calls[0]!;
-    expect(url).toBe('https://r.services.ai.azure.com/openai/v1/responses');
-    expect(init!.headers).toMatchObject({ 'api-key': 'k-123' });
-    expect(JSON.parse(init!.body as string)).toMatchObject({ model: 'dep', input: 'เมาส์เสีย' });
   });
 
-  it('502 on non-2xx / bad output, 504 on timeout; never logs key or text', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(new Response('secret upstream detail', { status: 429 }));
-    expect(await call(post({ text: 'เมาส์ 0811111111', page: 'x' }))).toEqual({ status: 502, body: { error: 'upstream' } });
-    vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify(azureJson('{"kind":"draft"}'))));
+  it('502 on invalid model output', async () => {
+    useModel(mockModel(textStep('{"kind":"create"}')));
+    expect(await call(post({ text: 'a', page: 'x' }))).toEqual({ status: 502, body: { error: 'upstream' } });
+    useModel(mockModel(textStep('not json')));
     expect((await call(post({ text: 'a', page: 'x' }))).status).toBe(502);
-    vi.mocked(fetch).mockRejectedValueOnce(new DOMException('t', 'TimeoutError'));
+  });
+
+  it('504 when the timeout signal aborts the model call', async () => {
+    const ctrl = new AbortController();
+    vi.spyOn(AbortSignal, 'timeout').mockReturnValue(ctrl.signal);
+    setTimeout(() => ctrl.abort(new DOMException('t', 'TimeoutError')), 10);
+    useModel(new MockLanguageModelV4({
+      doGenerate: ({ abortSignal }) => new Promise((_, reject) => {
+        abortSignal?.addEventListener('abort', () => reject(abortSignal.reason));
+      }),
+    }));
     expect(await call(post({ text: 'a', page: 'x' }))).toEqual({ status: 504, body: { error: 'timeout' } });
+  });
+
+  it('real azure model posts to {endpoint}/responses with the api-key header; 502 on upstream error', async () => {
+    vi.mocked(fetch).mockResolvedValue(new Response('secret upstream detail', { status: 400 }));
+    expect(await call(post({ text: 'a', page: 'x' }))).toEqual({ status: 502, body: { error: 'upstream' } });
+    const [url, init] = vi.mocked(fetch).mock.calls[0]!;
+    expect(String(url)).toBe('https://r.services.ai.azure.com/openai/v1/responses');
+    expect(new Headers(init!.headers).get('api-key')).toBe('k-123');
+    expect(JSON.parse(init!.body as string)).toMatchObject({ model: 'dep' });
+  });
+
+  it('never logs the user text, key, upstream body or model output', async () => {
+    useModel(mockModel(toolCallStep('mouse'), textStep(JSON.stringify({ ...VALID, summary: 'MODEL-SECRET' }))));
+    await call(post({ text: 'เมาส์ 0811111111', page: 'x' }));
+    useModel(mockModel(textStep('{"kind":"create","summary":"MODEL-SECRET"}')));
+    await call(post({ text: 'เมาส์ 0811111111', page: 'x' }));
+    vi.mocked(fetch).mockResolvedValue(new Response('secret upstream detail', { status: 401 }));
+    await call(post({ text: 'เมาส์ 0811111111', page: 'x' }), { ...AZURE });
     const logged = JSON.stringify(vi.mocked(console.warn).mock.calls);
-    expect(logged).not.toMatch(/0811111111|k-123|secret upstream/);
+    expect(logged).toContain('azure');
+    expect(logged).not.toMatch(/0811111111|เมาส์|k-123|secret upstream|MODEL-SECRET/);
   });
 });

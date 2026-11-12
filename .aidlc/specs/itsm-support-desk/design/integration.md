@@ -74,3 +74,18 @@ server: {
 | แปลงเป็น AiResult | ฝั่ง browser (`azure.ts`): Zod parse → `serviceDefinitionId` ต้องมีใน dataset, route ต้องอยู่ใน route table · urgency/impact = ค่า default ของ template (ไม่ให้ AI เลือก) · notes = ข้อความผู้ใช้ escape แล้ว (เหมือน rule-based) |
 | Fallback | เดิม: timeout / 4xx / 5xx / parse ไม่ผ่าน / ID ไม่มีจริง → rule-based + AI_UNAVAILABLE |
 | Log | server log แค่ status / ชนิด error ไม่ log ข้อความผู้ใช้หรือ key |
+
+### 2026-11-13 — AI SDK ToolLoopAgent + model adapter (แทน fetch ตรงใน middleware)
+ผู้ใช้ขอให้ห่อการเรียก model ด้วย Vercel AI SDK และสลับค่ายได้ · ไม่ใช้ `HarnessAgent` / ACP (ตัวนั้นรัน coding-agent runtime สำเร็จรูปใน sandbox ไม่ได้ห่อ model ของเรา)
+
+| รายการ | ค่า |
+|---|---|
+| Agent | `ToolLoopAgent` (`ai`) ใน `server/ai/agent.ts` · `Output.object({ schema })` (Zod 4 ช่องเดิม) · `stopWhen: isStepCount(4)` |
+| Model adapter | `server/ai/model.ts` `resolveModel(env)` ตาม `AI_PROVIDER`: `azure` → `createAzure({ baseURL: AZURE_AI_ENDPOINT, apiKey: AZURE_AI_KEY }).responses(AI_MODEL)` · `bedrock` → `createAmazonBedrock({ region: AWS_REGION, accessKeyId: AWS_ACCESS_KEY_ID, secretAccessKey: AWS_SECRET_ACCESS_KEY })(AI_MODEL)` · ค่าอื่น / env ขาด → `500 config_missing` · เพิ่มค่าย = ติดตั้ง provider package + 1 case |
+| Tools | `server/ai/tools.ts` อ่านอย่างเดียว ไม่ต้องอนุมัติ: `searchServices({ query })` → บริการไม่เกิน 10 รายการ `{ id, name, description }` จาก seed `database.json` · `listRoutes()` → route ที่อนุญาต (`ai.fallbackIntentToRoute` ∩ route table) |
+| Instructions | สั้น: บทบาท + กติกา + route ที่อนุญาต · ไม่ dump บริการทั้งหมด (model ต้องเรียก `searchServices` ก่อนเลือก id) |
+| เรียก | `agent.generate({ prompt: text, abortSignal: AbortSignal.timeout(9000) })` → `result.output` ตรวจด้วย Zod ก่อนตอบ |
+| Log | status, provider, จำนวน step · ไม่ log ข้อความผู้ใช้ / key / output ของ model |
+| Env | `AI_PROVIDER`, `AI_MODEL`, `AZURE_AI_ENDPOINT`, `AZURE_AI_KEY`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` · ลบ `AZURE_AI_DEPLOYMENT` (แทนด้วย `AI_MODEL`) |
+| Contract ฝั่ง browser | ไม่เปลี่ยน (api-spec §2 Add-on 2026-11-13) |
+| ความเร็ว | loop 2 step (tool + คำตอบ) ราว 2.5–3 วินาที ยังต่ำกว่า timeout 9 วินาที |

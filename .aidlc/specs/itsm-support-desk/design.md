@@ -123,3 +123,10 @@
 | `initial-requirements/project-requirements/database.json` | Sample data / config | data-model.md, components.md, api-spec.md |
 | npm registry (2026-11-11) | Package versions | implementation.md |
 | `.claude/rules/workshop-policies/design-system-policies.md` | Design policy | design-system.md, tokens.css |
+
+---
+
+## Add-on
+
+### 2026-11-13 — dependency ใหม่ (AI SDK)
+- `ai` 7.0.156, `@ai-sdk/azure` 4.0.112, `@ai-sdk/amazon-bedrock` 5.0.127 (pin exact, เวอร์ชันที่ออก ≥ 14 วัน) · ใช้ฝั่ง Node (Vite middleware) เท่านั้น ไม่เข้า bundle browser
