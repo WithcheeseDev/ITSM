@@ -589,3 +589,4 @@
 - 23:05 background ของ top nav: ภาพแถบชมพู→แดงเข้ม → src/assets/header-bg.webp, .header-surface · ปุ่มผู้ใช้พื้นขาว + card-shadow · AppLayout.tsx, UserMenu.tsx, globals.css · design-system §9
 - 23:20 Task 4.6 ปลดล็อก: contract Azure AI Foundry (Responses API) จาก template ผู้ใช้ · Vite middleware server/aiAssist.ts + azure.ts · integration.md, api-spec.md §2, tasks.md (Add-on)
 - 23:45 Task 4.6 verify กับ Azure จริง (gpt-5-4-mini): draft / navigate / unknown ผ่าน, AI panel เปิดฟอร์มกรอกให้ · tasks.md ติ๊ก 4.6
+- 23:55 เปลี่ยนภาพ top nav เป็นแถบแดงเข้ม + chevron: header-bg.webp ใหม่, ☰ และ wordmark ใส่ .on-brand (ตัวขาว) · AppLayout.tsx · design-system §9

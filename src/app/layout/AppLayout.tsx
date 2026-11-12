@@ -16,12 +16,12 @@ import { ROUTES } from '../routes';
 import { Sidebar } from './Sidebar';
 import { UserMenu } from './UserMenu';
 
-/** Brand-colour wordmark for the light header (< lg). */
+/** Wordmark for the header (< lg): white text on the dark-red header image (parent sets .on-brand). */
 function Wordmark() {
   return (
     <Link
       to={ROUTES.mySpace.path}
-      className="flex min-h-[var(--tap-target)] min-w-0 items-center gap-[var(--space-2)] rounded-[var(--radius-md)] font-semibold text-primary"
+      className="flex min-h-[var(--tap-target)] min-w-0 items-center gap-[var(--space-2)] rounded-[var(--radius-md)] font-semibold"
     >
       <img src={logoUrl} alt="" className="shrink-0 h-[var(--logo-height-mobile)] w-auto object-contain lg:h-[var(--logo-height)]" />
       <span className="truncate">ITSM Support Desk</span>
@@ -131,14 +131,14 @@ export function AppLayout() {
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden"
+            className="on-brand lg:hidden"
             aria-label="เปิดเมนู"
             aria-expanded={drawerOpen}
             onClick={() => setDrawerOpen(true)}
           >
             <Menu aria-hidden="true" className="size-[var(--icon-md)]" />
           </Button>
-          <div className="min-w-0 lg:hidden">
+          <div className="on-brand min-w-0 lg:hidden">
             <Wordmark />
           </div>
           <div className="ml-auto flex shrink-0 items-center gap-[var(--space-1)]">
