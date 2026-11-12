@@ -80,6 +80,6 @@ export const CALL_COLUMNS: readonly CallColumn[] = [
   { id: 'vvip', label: 'VVIP', render: (c) => (c.vvip ? 'VVIP' : '—') },
 ];
 
-/** FR-014 default 8 columns */
-export const DEFAULT_COLUMN_IDS = ['number', 'callType', 'summary', 'status', 'priority', 'openDate', 'dueDate', 'timeLeft'] as const;
+/** US-009 Add-on 2026-11-13: 5 columns so Time Left fits a 1280 screen (was FR-014's 8; the rest stay in the column picker) */
+export const DEFAULT_COLUMN_IDS = ['number', 'summary', 'status', 'priority', 'timeLeft'] as const;
 export const REQUIRED_COLUMN_ID = 'number';

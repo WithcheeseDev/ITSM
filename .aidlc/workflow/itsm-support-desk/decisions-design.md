@@ -242,3 +242,34 @@
 - **คำขอ**: ให้ sidebar แสดงเต็ม pane ซ้ายมือ
 - **Decision**: ≥ lg sidebar สูงเต็มจอ (ไม่อยู่ใต้ header) · logo ย้ายไปบนสุดของ sidebar · header อยู่เฉพาะฝั่งเนื้อหา · < lg (header + drawer) ไม่เปลี่ยน
 - **Sync**: `.claude/rules/design-system.md` §7, §9 · `src/app/layout/AppLayout.tsx`
+
+### 2026-11-13 — Header เข้ากับ sidebar (change request)
+- **คำขอ**: ปรับ header ให้เข้ากับ sidebar
+- **ตัวเลือก**: (1) แดงเข้มต่อจาก sidebar เป็นกรอบตัว L **(เลือก)** · (2) ขาว + เส้น crimson ใต้ header · (3) กลืนกับพื้นหน้า
+- **Decision**: header พื้น `--header-bg` (`#4A0A11` วัดจากขอบขวาของรูป sidebar หลัง overlay) ตัวอักษรและปุ่มขาว · ใช้ทั้ง ≥ lg และ < lg
+- **Sync**: `.claude/rules/design-system.md` §2, §3, §7, §9 · `src/styles/tokens.css` · `src/styles/globals.css` · `src/app/layout/AppLayout.tsx`
+
+### 2026-11-13 — Sidebar แยกจากส่วนอื่น: การ์ดลอย (change request)
+- **คำขอ**: ให้ sidebar แยกออกจากส่วนอื่นจนเห็นทันทีว่าเป็น sidebar
+- **ตัวเลือก**: (1) ยก sidebar ด้วยเงา คง L-frame · (2) sidebar ลอยเป็นการ์ด **(เลือก)** · (3) header กลับเป็นสีขาว
+- **Decision**: ≥ lg sidebar เป็นการ์ดลอย inset 12px radius 12px shadow-lg · header พื้นเดียวกับหน้า ไม่มีเส้น · แทนที่ "Header เข้ากับ sidebar" (L-frame) ข้างบน ซึ่งยังไม่เคย commit
+- **Sync**: `.claude/rules/design-system.md` §2, §3, §7, §9 · `src/styles/tokens.css` · `src/styles/globals.css` · `src/app/layout/AppLayout.tsx`
+
+### 2026-11-13 — Menu item เข้ากับรูปพื้นหลัง (impeccable shape)
+- **คำขอ**: ปรับ menu item ให้เข้ากับรูปพื้นหลัง sidebar
+- **Brief (ยืนยันแล้ว)**: active item เลิกเป็นพื้นขาวทึบ → พื้นดำโปร่ง + ขอบซ้ายสว่างเหมือนขอบเหลี่ยมที่รับแสงในรูป + เส้นขอบโปร่ง + ตัวหนา · active ยังเห็นทันทีด้วย 3 สัญญาณ · item ปกติไม่เปลี่ยน
+- **Sync**: `.claude/rules/design-system.md` §7, §9 · `src/styles/tokens.css` · `src/app/layout/Sidebar.tsx` · `PRODUCT.md` (สร้างใหม่โดย impeccable init)
+
+### 2026-11-13 — Animation เปลี่ยน menu item (change request)
+- **คำขอ**: เปลี่ยน menu item แบบ smooth
+- **ตัวเลือก**: (1) indicator เลื่อน **(เลือก)** · (2) cross-fade ในที่เดิม
+- **Decision**: indicator ชิ้นเดียวเลื่อนไปหา item ใหม่ (transform + opacity, 200ms, `--ease-standard`) · ครั้งแรกไม่เลื่อน · ไม่มี item ที่ active → จางหาย · reduced-motion → ทันที
+- **Sync**: `.claude/rules/design-system.md` §3, §7, §9 · `src/app/layout/Sidebar.tsx`
+- **อัปเดต (วันเดียวกัน)**: ผู้ใช้ชี้ว่าขอบซ้ายสว่าง + เส้นขอบรอบ item เป็น AI slop → ลบออก · active = พื้นดำโปร่ง 32% + ตัวหนา (ยังเลื่อนตามเดิม)
+
+### Add-on 2026-11-13 — My Space ตาม impeccable critique
+- **ที่มา**: `/impeccable critique /my-space` 27/40 · ผู้ใช้เลือก Time Left + ลำดับความสำคัญ, Resolved หยุดนับ SLA, ขอบเขต P1 + P2 แล้วสั่ง "ทำทั้งหมด"
+- **Decision**: (1) `timeLeft()` ถือ `Resolved` เป็น SLA หยุด (kind `closed`) โดยไม่แตะ `closedStatuses` (2) `DEFAULT_COLUMN_IDS` 8 → 5 (3) My Space เรียงตามความเร่งด่วน (4) แถบสรุปบรรทัดเดียว + ลิงก์ Approvals / ค้นหาเรื่อง ตามสิทธิ์ `approval:decide_assigned` / `call:view_group`·`call:view_all`
+- **ไม่ทำ (P3)**: เปลี่ยน title "Welcome Back" / "(Count: n)" — เป็น AC ของ US-009 · CTA ซ้ำใน empty state — AC ของ US-009 กำหนดไว้
+- **Sync**: requirements.md US-006 / US-009 + Add-on · design/correctness.md P4 · design-system.md §7, §9
+

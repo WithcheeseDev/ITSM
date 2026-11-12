@@ -472,3 +472,45 @@
 **Action**: TimeLeft warning `sr-only` span (position absolute) escaped CallTable's `overflow-x-auto` wrapper (not a containing block) and widened the page on My Space ≥ md.
 **Artifacts**: src/shared/components/CallTable.tsx, src/features/catalog/ServiceTable.tsx (wrapper → `relative`) · docs/postmortems/table-sr-only-overflow.md
 **Outcome**: pass — before: overflow 288 px (768) / 32 px (1280); after: UI audit 45 runs overflow 0, console 0 · tsc ✓, `npm test` 206 ✓, `npm run test:e2e` 3 ✓, build ✓.
+
+### [2026-11-13T08:10:00Z] Change Request: Header เข้ากับ sidebar (L-frame)
+
+**Phase**: design → implementation (refine-spec-first)
+**Action**: change request — user chose a dark header continuing the sidebar (option 1 of 3). Plan approved ("เริ่มทำ").
+**Artifacts**: design-system.md §2 (Header row), §3, §7, §9 · decisions-design.md Add-on · src/styles/tokens.css (`--palette-crimson-900: #4a0a11` sampled from the sidebar image's right edge after the overlay; `--header-bg`) · src/styles/globals.css (token re-pointing split out of `.sidebar-surface` into shared `.on-brand`; new `.header-surface` with `--accent` → white for the AI Assistant button) · src/app/layout/AppLayout.tsx (header `on-brand header-surface`; Wordmark always light — unused `tone` prop removed)
+**Outcome**: pass — white on header 15.7:1; header bottom border lines up with the sidebar logo-row border; user-menu popover and AI panel (portals) stay light. Browser 1280 / 375 checked. validate-tokens clean, tsc ✓, build ✓, `npm test` 206 ✓, `npm run test:e2e` 3 ✓, UI audit 45 runs: 0 overflow, 0 unlabeled, 0 console errors.
+
+### [2026-11-13T08:45:00Z] Change Request: Sidebar แยกจากส่วนอื่น — การ์ดลอย
+
+**Phase**: design → implementation (refine-spec-first)
+**Action**: change request — user wanted the sidebar to read as a sidebar at a glance; chose the floating card (option 2 of 3). Plan approved ("เริ่มทำ"). Replaces the uncommitted L-frame header from the previous entry.
+**Artifacts**: design-system.md §2, §3, §7 (Shell diagram), §9 · decisions-design.md Add-on · src/styles/tokens.css (`--sidebar-inset` 12px, `--sidebar-radius`, `--sidebar-shadow`; `--palette-crimson-900` and `--header-bg` removed — added and removed within the same uncommitted change) · src/styles/globals.css (`.header-surface` removed; `.on-brand` kept for sidebar + drawer) · src/app/layout/AppLayout.tsx (≥ lg aside `sticky top/m = --sidebar-inset`, height 100dvh − 2 × inset, radius, shadow, no border; header `bg-background` without border; Wordmark `tone` restored — light in the sidebar, brand colour in the < lg header)
+**Outcome**: pass — browser 1280 × 800, 1280 × 420 (aside 12–408 px, fits), 375 (light header, brand logo); rounded corners clip the image. validate-tokens clean, tsc ✓, build ✓, `npm test` 206 ✓, `npm run test:e2e` 3 ✓, UI audit 45 runs: 0 overflow, 0 unlabeled, 0 console errors.
+
+### [2026-11-13T09:20:00Z] Change Request: Menu item เข้ากับรูปพื้นหลัง (impeccable shape → build)
+
+**Phase**: design → implementation (refine-spec-first)
+**Action**: `/impeccable shape` — user: the solid white active pill looks like a sticker on the image; active must stay instantly visible but not solid white. Impeccable init created PRODUCT.md (product truth confirmed by the user). Brief "lit facet" confirmed, then "ลงมือทำ".
+**Artifacts**: PRODUCT.md (new) · design-system.md §7, §9 · decisions-design.md Add-on · src/styles/tokens.css (`--sidebar-item-active-bg` → black 28%, `-fg` → white, new `-edge`, `-ring`, `-shadow`; hover 0.2 → 0.14) · src/app/layout/Sidebar.tsx (active: semibold + inset-shadow lit left edge + 1px translucent ring; no `border-left`, per craft floor)
+**Outcome**: pass — white text at the brightest point under the menu: active ≥ 7.86:1, hover ≥ 6:1 (white 16% fill rejected at 3.85:1). Browser: desktop sidebar + mobile drawer. Impeccable detector: 0 findings. validate-tokens clean, tsc ✓, build ✓, `npm test` 206 ✓, `npm run test:e2e` 3 ✓, UI audit 45 runs: 0 overflow, 0 unlabeled, 0 console errors.
+
+### [2026-11-13T09:50:00Z] Change Request: Animation เปลี่ยน menu item (sliding indicator)
+
+**Phase**: design → implementation (refine-spec-first, `impeccable animate`)
+**Action**: user chose the sliding indicator over cross-fade. Motion thesis: the lit facet travels from the old item to the new one, showing where navigation came from and went.
+**Artifacts**: design-system.md §3 (Motion), §7, §9 · decisions-design.md Add-on · src/app/layout/Sidebar.tsx (one `aria-hidden` indicator measured from the `aria-current="page"` link in `useLayoutEffect` on pathname + ResizeObserver; `translate` + `opacity` with `--dur-normal` / `--ease-standard`; transition enabled only after the first frame; items keep semibold + text colour, `relative` to paint above the indicator)
+**Outcome**: pass — browser: transform transition running mid-way (y 12 → 82.6 → 108); slide starts after the new route commits (~160 ms in dev). Playwright: no animation on first load, opacity 0 on a non-menu route (/calls/call_001), drawer places the indicator on the active item, reduced-motion → 0.01 ms, 0 console errors. Impeccable detector 0 findings. tsc ✓, build ✓, `npm test` 206 ✓, `npm run test:e2e` 3 ✓, UI audit 45 runs clean.
+
+### [2026-11-13T10:10:00Z] Refinement: ลบ accent AI slop ของ menu item
+
+**Phase**: implementation (`/impeccable` refinement, refine-spec-first)
+**Action**: user flagged the active item's 2px white left edge + 1px translucent outline as AI slop (accent bar on a rounded card; craft floor refuses it). Removed both; active distinguished by a darker recessed fill + semibold.
+**Artifacts**: design-system.md §3, §7, §9 · decisions-design.md Add-on update · src/styles/tokens.css (`--sidebar-item-active-bg` 0.28 → 0.32; `-edge`, `-ring`, `-shadow` removed — added and removed within the same uncommitted change) · src/app/layout/Sidebar.tsx (indicator without the shadow class)
+**Outcome**: pass — white text at the brightest point on active 8.87:1. Browser 1280 checked. Motion check: no slide on first load, hidden on non-menu route, drawer placement, reduced-motion, 0 errors. Impeccable detector 0 findings. tsc ✓, build ✓, `npm test` 206 ✓, `npm run test:e2e` 3 ✓.
+
+### [2026-11-13T11:00:00Z] Refinement: My Space ตาม impeccable critique
+
+**Phase**: implementation (`/impeccable critique` → harden, distill, bolder/layout, clarify/onboard, polish · refine-spec-first)
+**Action**: critique 27/40 (dual-agent). User chose Time Left + urgency, Resolved stops the SLA, scope P1 + P2, then "ทำทั้งหมดเลย". Resolved no longer shows "เลยกำหนด" (`SLA_STOPPED_STATUSES` in `timeLeft`, `closedStatuses` untouched so Resolved can still be closed / re-opened). Default columns 8 → 5. My Space rows sorted by urgency; one-line attention summary under the title; approver link "รออนุมัติจากคุณ n" → /approvals; agent "เรื่องเปิดในคิวกลุ่มคุณ n" / admin "เรื่องเปิดทั้งระบบ n" → /calls/search. Column picker hidden < md (it only affects the table). Not done (P3, US-009 AC): title "Welcome Back", "(Count: n)", duplicate CTA in the empty state.
+**Artifacts**: requirements.md US-006 / US-009 + Add-on · design/correctness.md P4 · design-system.md §7, §9 · decisions-design.md Add-on · src/domain/sla.ts · src/shared/components/callColumns.tsx · src/features/my-space/MySpacePage.tsx · tests/unit/domain/sla.test.ts · tests/properties/sla.properties.test.ts · tests/unit/components/MySpacePage.test.tsx (+4)
+**Outcome**: pass — browser 1280: table fits the card (wrapper overflow 0), Time Left visible, Resolved shown grey; 375 cards ok; page overflow 0. tsc ✓, build ✓, `npm test` 211 ✓, `npm run test:e2e` 3 ✓, UI audit 45 runs clean, tokens ✓, impeccable detector 0 findings.

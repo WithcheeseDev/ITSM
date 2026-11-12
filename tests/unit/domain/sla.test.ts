@@ -56,6 +56,11 @@ describe('timeLeft', () => {
     expect(isClosed('Resolved')).toBe(false);
   });
 
+  it('Resolved stops the SLA clock: past due is shown as closed, not overdue', () => {
+    const r = timeLeft({ ...base, status: 'Resolved', dueDate: '2026-11-10T09:00:00+07:00' });
+    expect(r).toMatchObject({ kind: 'closed', overdue: false, label: '-1 days 00:00' });
+  });
+
   it('< 25% of SLA left → warning', () => {
     // P2 = 8h; 1h59m left < 2h
     expect(timeLeft({ ...base, dueDate: '2026-11-11T10:59:00+07:00', slaHours: 8 }).kind).toBe('warning');

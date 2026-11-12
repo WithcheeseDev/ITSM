@@ -87,6 +87,7 @@
   - WHILE เรื่องยังรออนุมัติในหมวดที่ `slaStartsAfterApproval = true`, THEN ระบบ shall แสดง Time Left เป็น "รออนุมัติ"
   - The system shall แสดง Time Left รูปแบบ "X days hh:mm" และค่าติดลบเมื่อเลย due date
   - IF Time Left ติดลบและเรื่องยังไม่อยู่ใน `closedStatuses`, THEN ระบบ shall แสดง icon เตือน + label "เลยกำหนด"
+  - WHILE เรื่องอยู่สถานะ `Resolved` (รอปิด 7 วัน), THEN ระบบ shall หยุดนับ SLA — แสดง Time Left แบบเรื่องที่ปิดแล้ว (ไม่มี "เลยกำหนด") · *Add-on 2026-11-13*
 - **Dependencies**: US-005
 - **Source**: §4.3.2, BR-04, EX-03, D1-5, D1-6
 
@@ -119,7 +120,10 @@
 - **Priority**: High
 - **Acceptance Criteria**:
   - WHEN ผู้ใช้เปิด My Space, THEN ระบบ shall แสดง "Welcome Back : {ชื่อ}" และตารางเรื่องที่ `requestorId` = ผู้ใช้ พร้อม "(Count: n)"
-  - The system shall แสดงคอลัมน์ default 8 คอลัมน์: Number, Call Type, Summary, Status, Priority, Open Date, Due Date, Time Left
+  - The system shall แสดงคอลัมน์ default 5 คอลัมน์: Number, Summary, Status, Priority, Time Left (Call Type, Open Date, Due Date เพิ่มได้จากปุ่มเลือกคอลัมน์) · *Add-on 2026-11-13 แทน 8 คอลัมน์ของ FR-014*
+  - The system shall เรียงเรื่องตามความเร่งด่วน: เลยกำหนด → ใกล้ครบ → ปกติ (เวลาเหลือน้อยก่อน) → รออนุมัติ → ไม่มี due date / ปิดแล้ว · *Add-on 2026-11-13*
+  - WHEN มีเรื่องที่ยังเปิดอยู่, THEN ระบบ shall แสดงแถบสรุปใต้หัวข้อ: จำนวนเลยกำหนด / ใกล้ครบ / รออนุมัติ (icon + label) หรือ "ทุกเรื่องยังอยู่ในเวลา" · *Add-on 2026-11-13*
+  - WHERE ผู้ใช้มีสิทธิ์อนุมัติหรือดูคิวกลุ่ม, THEN แถบสรุป shall แสดงลิงก์ "รออนุมัติจากคุณ n เรื่อง" → Approvals และ "เรื่องเปิดในคิวกลุ่มคุณ n เรื่อง" (admin: "เรื่องเปิดทั้งระบบ") → ค้นหาเรื่อง · *Add-on 2026-11-13*
   - WHEN ผู้ใช้กดแถว, THEN ระบบ shall เปิดหน้า Detail ของเรื่องนั้น
   - IF ไม่มีเรื่อง, THEN ระบบ shall แสดง empty state + ปุ่ม "แจ้งเรื่องใหม่"
 - **Dependencies**: US-004, US-006
@@ -501,3 +505,11 @@
 | `initial-requirements/project-requirements/Requirements.md` | US-001–034 | FR/NFR/BR/EX, entities, state machine, validation |
 | `initial-requirements/project-requirements/database.json` | US-004–008, US-028, US-031, US-034 | `priorityMatrix`, `rfcPriorityMatrix`, `slaHoursByPriority`, `slaStartsAfterApproval`, `statusByCallType`, `closedStatuses`, `rolePermissions`, `runningNumber`, `ai` fallback rules |
 | `.aidlc/workflow/itsm-support-desk/decisions-requirements.md` | ทั้งหมด | D1-1 ถึง D1-15 |
+
+## Add-on
+
+- **2026-11-13 (impeccable critique My Space, ผู้ใช้เลือก "ทำทั้งหมด")**
+  - US-006: `Resolved` หยุดนับ SLA — เดิมเรื่องที่แก้แล้วแต่ยังรอปิด 7 วันขึ้น "เลยกำหนด" สีแดง ทั้งที่ IT ทำเสร็จแล้ว · ไม่เพิ่ม `Resolved` เข้า `closedStatuses` เพราะสถานะนั้นยัง Close / Re-open / ค้น "Open" ได้ — แก้เฉพาะการคำนวณ Time Left
+  - US-009: default columns 8 → 5 (FR-014 `[PROP]`) เพราะที่จอ 1280 ตาราง 8 คอลัมน์กว้าง 1215px ในการ์ด ~830px ทำให้ Time Left ต้องเลื่อนหา · ผู้ใช้ที่เคยเลือกคอลัมน์ไว้ยังได้ค่าเดิม (localStorage) · ค่า default เดียวกันใช้กับ Search
+  - US-009: เรียงตามความเร่งด่วน + แถบสรุป + ลิงก์งานของ approver / agent (My Space ของสองกลุ่มนี้เดิมว่าง 2 การ์ด)
+

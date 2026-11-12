@@ -42,7 +42,7 @@ fc.assert(fc.property(fc.date({ min, max }), fc.constantFrom('P1','P2','P3','P4'
 
 ### P4. Time Left สอดคล้องกับเวลา
 **Validates**: US-006
-**Property**: `now ≤ due` → ไม่ overdue · `now > due` และไม่ปิด → overdue · สถานะปิด → ไม่ overdue เสมอ
+**Property**: `now ≤ due` → ไม่ overdue · `now > due` และไม่ปิด → overdue · สถานะปิด หรือ `Resolved` (SLA หยุดนับ, Add-on 2026-11-13) → ไม่ overdue เสมอ
 **Generators**: due, now = date; status จาก statusByCallType
 **Edge Cases**: now === due (ไม่ overdue), awaitingApproval → label "รออนุมัติ"
 

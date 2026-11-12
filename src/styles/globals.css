@@ -110,15 +110,19 @@
   }
 }
 
-/* Sidebar surface (design-system §7): supplied red geometric image + dark overlay; semantic tokens are
-   re-pointed inside so shared components (nav links, sheet title, close button, focus ring) turn light. */
-.sidebar-surface {
+/* Dark brand surfaces (design-system §7): semantic tokens are re-pointed inside so shared components
+   (nav links, ghost buttons, sheet title, close button, focus ring) turn light. */
+.on-brand {
   --foreground: var(--sidebar-fg);
   --muted-foreground: var(--sidebar-fg);
   --muted: var(--sidebar-item-hover-bg);
   --border: var(--sidebar-border);
   --ring: var(--sidebar-ring);
   color: var(--sidebar-fg);
+}
+
+/* Sidebar: supplied red geometric image + dark overlay. */
+.sidebar-surface {
   background:
     linear-gradient(var(--sidebar-overlay), var(--sidebar-overlay)),
     url("../assets/sidebar-bg.webp") left top / cover no-repeat,

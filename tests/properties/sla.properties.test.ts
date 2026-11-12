@@ -31,7 +31,7 @@ describe('P4 Time Left agrees with the clock', () => {
       fc.property(epochMs, fc.integer({ min: -30 * DAY, max: 30 * DAY }), anyStatus, (due, delta, status) => {
         const now = due + delta;
         const t = timeLeft({ dueDate: formatIso(due), now, status, awaitingApproval: false, closedStatuses });
-        const closed = closedStatuses.includes(status);
+        const closed = closedStatuses.includes(status) || status === 'Resolved';
         return t.overdue === (!closed && now > due);
       }),
       RUNS,
@@ -48,7 +48,7 @@ describe('P4 Time Left agrees with the clock', () => {
   it('awaiting approval on an open call shows "รออนุมัติ"', () => {
     fc.assert(
       fc.property(fc.option(epochMs, { nil: null }), epochMs, anyStatus, (due, now, status) => {
-        fc.pre(!closedStatuses.includes(status));
+        fc.pre(!closedStatuses.includes(status) && status !== 'Resolved'); // Resolved stops the SLA (US-006 Add-on)
         const t = timeLeft({ dueDate: due === null ? null : formatIso(due), now, status, awaitingApproval: true, closedStatuses });
         return t.kind === 'awaiting' && t.label === 'รออนุมัติ' && !t.overdue;
       }),

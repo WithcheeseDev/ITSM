@@ -7,6 +7,8 @@ const HOUR = 3_600_000;
 /** Dataset dates use +07:00 (`_meta.dateFormat`) */
 export const APP_OFFSET_MINUTES = 7 * 60;
 export const NEAR_DUE_RATIO = 0.25;
+/** IT finished; the call only waits 7 days to auto-close — the SLA clock stops (US-006 Add-on). Not a closed status: it can still be closed / re-opened. */
+export const SLA_STOPPED_STATUSES: readonly Status[] = ['Resolved'];
 
 const pad = (n: number): string => String(n).padStart(2, '0');
 
@@ -59,7 +61,7 @@ export interface TimeLeftInput {
 }
 
 export function timeLeft({ dueDate, now, status, awaitingApproval, slaHours, closedStatuses }: TimeLeftInput): TimeLeft {
-  const closed = isClosed(status, closedStatuses);
+  const closed = isClosed(status, closedStatuses) || SLA_STOPPED_STATUSES.includes(status);
   if (awaitingApproval && !closed) return { kind: 'awaiting', label: 'รออนุมัติ', minutes: null, overdue: false };
   if (!dueDate) return { kind: 'none', label: '—', minutes: null, overdue: false };
 

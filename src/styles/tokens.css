@@ -194,9 +194,13 @@
   --sidebar-fg: var(--palette-neutral-0);
   --sidebar-border: rgb(255 255 255 / 0.2);
   --sidebar-ring: var(--palette-neutral-0);
-  --sidebar-item-hover-bg: rgb(0 0 0 / 0.2);          /* darken, never lighten — lighter lowers contrast */
-  --sidebar-item-active-bg: var(--palette-neutral-0);
-  --sidebar-item-active-fg: var(--palette-crimson-700);
+  --sidebar-item-hover-bg: rgb(0 0 0 / 0.14);         /* darken, never lighten — lighter lowers contrast */
+  /* Active = a recessed, darker patch of the image — no accent bar, no outline */
+  --sidebar-item-active-bg: rgb(0 0 0 / 0.32);
+  --sidebar-item-active-fg: var(--palette-neutral-0);
+  --sidebar-inset: var(--space-3);                    /* floating card: gap to the viewport edges (≥ lg) */
+  --sidebar-radius: var(--radius-lg);
+  --sidebar-shadow: var(--shadow-lg);
 
   /* Status groups (StatusBadge — always icon + label) */
   /* D3-15 rev: progress moved off primary-soft — red-tinted badges must stay "rejected" only */

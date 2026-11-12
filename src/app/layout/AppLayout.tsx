@@ -12,7 +12,7 @@ import { ROUTES } from '../routes';
 import { Sidebar } from './Sidebar';
 import { UserMenu } from './UserMenu';
 
-/** `tone="light"` = white text for the dark sidebar surface. */
+/** `tone="light"` = white text for the dark sidebar; default = brand colour for the light header (< lg). */
 function Wordmark({ tone = 'brand' }: { tone?: 'brand' | 'light' }) {
   return (
     <Link
@@ -29,7 +29,7 @@ function Wordmark({ tone = 'brand' }: { tone?: 'brand' | 'light' }) {
   );
 }
 
-/** Shell (design-system §7): ≥ lg sidebar 240px full height (logo on top) + header over the content column · < lg header + drawer. */
+/** Shell (design-system §7): ≥ lg floating sidebar card (logo on top) + light header over the content · < lg header + drawer. */
 export function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
@@ -38,7 +38,7 @@ export function AppLayout() {
 
   return (
     <div className="flex min-h-dvh bg-background">
-      <aside className="sticky top-0 hidden h-dvh w-[var(--sidebar-width)] shrink-0 flex-col overflow-y-auto border-r sidebar-surface lg:flex">
+      <aside className="sticky top-[var(--sidebar-inset)] m-[var(--sidebar-inset)] hidden h-[calc(100dvh-2*var(--sidebar-inset))] w-[var(--sidebar-width)] shrink-0 flex-col overflow-y-auto rounded-[var(--sidebar-radius)] shadow-[var(--sidebar-shadow)] on-brand sidebar-surface lg:flex">
         <div className="flex h-[var(--header-height)] shrink-0 items-center border-b px-[var(--space-4)]">
           <Wordmark tone="light" />
         </div>
@@ -46,7 +46,7 @@ export function AppLayout() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-40 flex h-[var(--header-height)] items-center gap-[var(--space-2)] border-b bg-card px-[max(var(--gutter),env(safe-area-inset-left))] lg:px-[var(--gutter-lg)]">
+        <header className="sticky top-0 z-40 flex h-[var(--header-height)] items-center gap-[var(--space-2)] bg-background px-[max(var(--gutter),env(safe-area-inset-left))] lg:px-[var(--gutter-lg)]">
           <Button
             variant="ghost"
             size="icon"
@@ -74,7 +74,7 @@ export function AppLayout() {
         {user && aiAllowed && <AiPanel me={user} open={aiOpen} onOpenChange={setAiOpen} />}
 
         <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-          <SheetContent side="left" className="sidebar-surface w-[var(--sidebar-width)] p-0">
+          <SheetContent side="left" className="on-brand sidebar-surface w-[var(--sidebar-width)] p-0">
             <SheetHeader className="border-b px-[var(--space-4)] py-[var(--space-3)]">
               <SheetTitle>เมนู</SheetTitle>
               <SheetDescription className="sr-only">เลือกหน้าที่ต้องการไป</SheetDescription>

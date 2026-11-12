@@ -45,7 +45,7 @@
 |---|---|---|
 | Primitive | `--palette-*`, `--fs-*`, `--fw-*`, `--space-*`, `--radius-*`, `--shadow-*`, `--dur-*`, `--ease-*` | `--palette-indigo-600` |
 | Semantic | ชื่อตาม shadcn/ui: `--background`, `--foreground`, `--card`, `--primary(-hover/-active/-foreground/-soft)`, `--accent(-soft)`, `--muted(-foreground)`, `--border`, `--input`, `--ring`, `--success/warning/destructive/info(-soft/-soft-foreground)`, layout `--container-max`, `--form-max`, `--gutter`, `--sidebar-width`, `--header-height`, `--section-gap`, `--tap-target` | `--primary` |
-| Component | `--button-*`, `--input-*`, `--card-*`, `--table-*`, `--badge-*`, `--sidebar-*` (รวม `--sidebar-fg`, `--sidebar-overlay`, `--sidebar-ring`), `--status-*`, `--icon-*`, `--logo-*` | `--status-waiting-bg` |
+| Component | `--button-*`, `--input-*`, `--card-*`, `--table-*`, `--badge-*`, `--sidebar-*` (รวม `--sidebar-fg`, `--sidebar-overlay`, `--sidebar-ring`, `--sidebar-inset`, `--sidebar-radius`, `--sidebar-shadow`), `--status-*`, `--icon-*`, `--logo-*` | `--status-waiting-bg` |
 
 **Tailwind v4 wiring** (`src/styles/globals.css`):
 ```css
@@ -78,6 +78,7 @@ component ใช้ utility (`bg-primary`, `text-muted-foreground`) หรือ
 - Radius: control 8px · card 12px · badge/chip pill
 - Shadow: card `--shadow-sm` → hover `--shadow-md` · dialog/popover `--shadow-lg` · จัดกลุ่มด้วย spacing ก่อนเส้น
 - Motion: hover/press 120ms · panel/dialog 200ms · drawer 320ms · `prefers-reduced-motion` → 0ms
+- Motion เด่นจุดเดียวของ shell: indicator ของ sidebar (พื้นเข้มของ active item) เลื่อนจาก item เดิมไป item ใหม่เมื่อเปลี่ยนหน้า — `transform` + `opacity`, `--dur-normal` / `--ease-standard` · ครั้งแรก (โหลดหน้า / เปิด drawer) วางทันทีไม่เลื่อน · หน้าที่ไม่อยู่ในเมนู → จางหาย · reduced-motion → กระโดดทันที
 
 ## 4. Status / Priority / Time Left (ห้ามสื่อด้วยสีอย่างเดียว)
 
@@ -121,27 +122,29 @@ component ใช้ utility (`bg-primary`, `text-muted-foreground`) หรือ
 - Loading: skeleton โทน `--muted` (ไม่ใช้ spinner เปล่า) · Empty state: icon + ข้อความ + ปุ่ม action หลัก
 
 ## 7. Page Layout Blueprint
-**Shell (ทุกหน้า หลัง login)** — ≥ lg: sidebar สูงเต็มจอด้านซ้าย (Add-on 2026-11-13)
+**Shell (ทุกหน้า หลัง login)** — ≥ lg: sidebar เป็นการ์ดลอย (Add-on 2026-11-13)
 ```
-┌ Sidebar 240px, h = 100dvh, sticky ┬ Header 56px: ··········· [AI Assistant] [ชื่อผู้ใช้ ▾] ┐
-│ [Logo] ITSM Support Desk (56px)   │                                                     │
-│ ───────────                       ├ Main: container ≤ 1280, padding 16/32 ──────────────┤
-│ My Space                          │  Page title + action ขวา                            │
-│ Service Catalog                   │  [section card] gap 24                              │
-│ แจ้งเรื่องใหม่                      │  [section card]                                     │
-│ ค้นหาเรื่อง                         │                                                     │
-│ อนุมัติ (approver)                  │                                                     │
-└───────────────────────────────────┴─────────────────────────────────────────────────────┘
+   ╭ Sidebar 240px ─────────╮  Header 56px (พื้นเดียวกับหน้า, ไม่มีเส้น): ··· [AI Assistant] [ชื่อผู้ใช้ ▾]
+   │ [Logo] ITSM Support Desk│
+   │ ─────────               │  Main: container ≤ 1280, padding 16/32
+   │ My Space                │   Page title + action ขวา
+   │ Service Catalog         │   [section card] gap 24
+   │ แจ้งเรื่องใหม่            │   [section card]
+   │ ค้นหาเรื่อง               │
+   │ อนุมัติ (approver)        │
+   ╰─────────────────────────╯
+   ↑ inset 12px รอบด้าน · radius 12 · shadow-lg · sticky, สูง 100dvh − 24px
 ```
-< lg: header เต็มความกว้าง `[☰] Logo ··· [AI] [ผู้ใช้]` + sidebar เป็น drawer (เหมือนเดิม)
+< lg: header (พื้นเดียวกับหน้า) `[☰] Logo (สี brand) ··· [AI] [ผู้ใช้]` + sidebar เป็น drawer
+
 sidebar แบน ทุกหน้าเป็น item ระดับบนพร้อม icon · active = `--sidebar-item-active-*` + `aria-current="page"`
 
-Sidebar background: รูป `src/assets/sidebar-bg.webp` (ลายเรขาคณิตแดง ผู้ใช้ให้มา 2026-11-13) `cover` ชิดซ้ายบน + overlay `--sidebar-overlay` ทับทั้งแผ่นให้ข้อความขาวผ่าน AA · พื้นสำรองระหว่างโหลดรูป `--sidebar-bg` (crimson-800) · ภายใน `.sidebar-surface` เปลี่ยนค่า `--foreground` / `--muted-foreground` → `--sidebar-fg` (ขาว), `--muted` → `--sidebar-item-hover-bg` (ดำ 20%), `--border` → `--sidebar-border`, `--ring` → `--sidebar-ring` (ขาว) · active item = พื้นขาว + ตัวอักษร crimson-700 · ใช้ทั้ง sidebar ถาวร (≥ lg) และ drawer (< lg)
+Sidebar background: รูป `src/assets/sidebar-bg.webp` (ลายเรขาคณิตแดง ผู้ใช้ให้มา 2026-11-13) `cover` ชิดซ้ายบน + overlay `--sidebar-overlay` ทับทั้งแผ่นให้ข้อความขาวผ่าน AA · พื้นสำรองระหว่างโหลดรูป `--sidebar-bg` (crimson-800) · ภายใน `.sidebar-surface` เปลี่ยนค่า `--foreground` / `--muted-foreground` → `--sidebar-fg` (ขาว), `--muted` → `--sidebar-item-hover-bg` (ดำ 20%), `--border` → `--sidebar-border`, `--ring` → `--sidebar-ring` (ขาว) · active item = พื้นดำโปร่ง 32% (`--sidebar-item-active-bg`, เป็น indicator ชิ้นเดียวที่เลื่อนตาม item ที่ active — ดู §3 Motion) + ตัวหนา semibold · ไม่มี accent bar / เส้นขอบรอบ item · ตัวอักษรขาว · hover = ดำ 14% · ใช้ทั้ง sidebar ถาวร (≥ lg) และ drawer (< lg)
 
 | Page | Blueprint |
 |---|---|
 | Login | การ์ดกลางจอ กว้าง ≤ 480: โลโก้ + "เลือกผู้ใช้ตัวอย่าง" + รายการผู้ใช้ (ชื่อ, role badge) แต่ละแถวเป็นปุ่ม 44px + หมายเหตุ "ข้อมูลสมมติ" |
-| My Space | title "Welcome Back : {ชื่อ}" + ปุ่ม "แจ้งเรื่องใหม่" ขวา → การ์ด "Calls Logged For You (n)" + ปุ่มเลือกคอลัมน์ในหัวการ์ด → การ์ด "Calls You Opened On Behalf (n)" |
+| My Space | title "Welcome Back : {ชื่อ}" + ปุ่ม "แจ้งเรื่องใหม่" ขวา → แถบสรุปบรรทัดเดียว (เลยกำหนด / ใกล้ครบ / รออนุมัติ เป็นข้อความ + icon สีตาม Time Left · ลิงก์ "รออนุมัติจากคุณ n" / "คิวกลุ่มคุณ n" ตามสิทธิ์ · ไม่มีเรื่องเร่ง → "ทุกเรื่องยังอยู่ในเวลา") → การ์ด "Calls Logged For You (n)" + ปุ่มเลือกคอลัมน์ในหัวการ์ด → การ์ด "Calls You Opened On Behalf (n)" · แถวเรียงเลยกำหนดก่อน · default 5 คอลัมน์ (Number, Summary, Status, Priority, Time Left) |
 | Service Catalog | breadcrumb → grid การ์ดหมวด (1 / 2 / 3 / 4 คอลัมน์ ตาม breakpoint) icon + ชื่อ + คำอธิบาย + slaNote → ระดับบริการ: ตาราง (mobile = list การ์ด) + ปุ่ม "Request this service" ท้ายแถว |
 | Add Support Call | คอลัมน์ฟอร์มกว้าง ≤ 880 · section การ์ดตามลำดับ: Requested for → Contact → Priority & Template (priority preview เป็น badge ข้าง Impact) → CI → Details → Attachments · แถบปุ่ม OK / Cancel ล่างฟอร์ม (sticky บน mobile) |
 | Search | การ์ดเงื่อนไข: แถว Default Criteria (grid 1 / 2 / 3) + call type & Open/Closed เป็น chip + "Advance Criteria" พับได้ + Search / Clear ขวา → การ์ดผล (จำนวน + เลือกคอลัมน์) → ตาราง scroll แนวนอนภายในการ์ด |
@@ -166,3 +169,9 @@ Sidebar background: รูป `src/assets/sidebar-bg.webp` (ลายเรข�
 - **2026-11-13 (change request: โทนแดง-ขาว)** — D3-15 rev: primary indigo → crimson `#B0142A`, accent teal → charcoal `#2E3440`, neutral อุ่น → neutral เย็น (`#FAFAFA` page) · ไม่ใช้โลโก้/hex/ชื่อแบรนด์ขององค์กรใด (HARD RULE #9) · เพิ่ม primitive `--palette-crimson-*`, `--palette-charcoal-*` · `--palette-indigo-*`, `--palette-teal-*` คงชื่อไว้ (ห้ามลบชื่อ token) แต่ไม่มี semantic ใดอ้างแล้ว · ปุ่ม destructive เปลี่ยนจากแดงเต็มพื้นเป็นขอบแดง + icon `CircleX` เพราะแดง primary กับ `--destructive` ต่างกันแค่ 1.28:1 · StatusBadge: กลุ่ม progress เดิมใช้ `--primary-soft` (กลายเป็นชมพูแดง ใกล้กลุ่ม rejected) → ย้ายเป็น `--info-soft` (ฟ้า, 6.35:1) และกลุ่ม new ย้ายเป็น `--accent-soft` (charcoal, 13.66:1)
 - **2026-11-13 (change request: sidebar background)** — ผู้ใช้ขอใช้ CIMB Chevron เป็นต้นแบบ → ไม่ทำ (โลโก้บุคคลที่สาม, HARD RULE #9 / policy §7) · ลองลาย chevron ออกแบบเองก่อน แล้วผู้ใช้ส่งรูปลายเรขาคณิตแดงมาแทน (ไม่ใช่โลโก้) → sidebar เป็นพื้นเข้ม: รูป `cover` + overlay `rgb(24 24 27 / 0.35)` · วัดจากรูปจริงที่ความสูง sidebar 560 / 788 / 1100px: ข้อความขาวบนรูปเปล่าต่ำสุด 2.72:1 (ไม่ผ่าน) → หลังใส่ overlay ≥ 5:1 · hover ใช้ดำ 20% (ไม่ใช้ขาว เพราะทำให้ contrast ต่ำลง) · active = พื้นขาว / crimson-700 9.34:1 · token ใหม่ `--sidebar-fg`, `--sidebar-item-hover-bg`, `--sidebar-border`, `--sidebar-overlay`, `--sidebar-ring` · `--sidebar-bg` เปลี่ยนค่าเป็น crimson-800 · `--sidebar-item-active-bg/fg` เปลี่ยนค่า
 - **2026-11-13 (change request: sidebar เต็ม pane ซ้าย)** — ≥ lg: sidebar `sticky top-0 h-dvh` ตั้งแต่ขอบบนถึงขอบล่างของจอ · logo (wordmark) ย้ายจาก header ไปแถวบนสุดของ sidebar สูงเท่า header (56px) ตัวอักษรขาว (`--sidebar-fg`) · สี่เหลี่ยม crimson ของ logo กลืนกับพื้นแดง → ขอบ 1px `--sidebar-border` เฉพาะใน sidebar · header อยู่เฉพาะคอลัมน์เนื้อหา ยัง sticky · < lg ไม่เปลี่ยน
+- **2026-11-13 (change request: header เข้ากับ sidebar)** — ผู้ใช้เลือก header แดงเข้มต่อจาก sidebar (กรอบตัว L) · เพิ่ม primitive `--palette-crimson-900: #4a0a11` (สีที่วัดจากรูปจริงที่ขอบขวาของ sidebar หลัง overlay) + semantic `--header-bg` · แยกการ re-point token ของ `.sidebar-surface` ออกเป็น `.on-brand` ใช้ร่วมกับ `.header-surface`
+- **2026-11-13 (change request: sidebar แยกจากส่วนอื่น)** — ผู้ใช้ต้องการให้เห็นทันทีว่าเป็น sidebar → เลือก sidebar การ์ดลอย (inset `--sidebar-inset` 12px, radius `--sidebar-radius` 12px, `--sidebar-shadow` = `--shadow-lg`, `overflow: hidden` ให้มุมตัดรูป) · header กลับเป็นพื้นเดียวกับหน้า ไม่มีเส้น · logo ใน header (< lg) กลับเป็นสี brand · แทนที่ L-frame ของรายการก่อนหน้า (ยังไม่เคย commit) → ลบ `--palette-crimson-900`, `--header-bg`, `.header-surface` ออก (เพิ่มและลบใน change เดียวกันที่ยังไม่ commit)
+- **2026-11-13 (impeccable shape: menu item เข้ากับ background image)** — active item เดิมเป็นพื้นขาวทึบดูเหมือนสติกเกอร์ทับรูป → brief ที่ผู้ใช้ยืนยัน: เหลี่ยมที่รับแสง (พื้นดำ 28% + ขอบซ้ายสว่างแบบขอบเหลี่ยมในรูป + เส้นขอบโปร่ง + semibold) · ขอบซ้ายใช้ inset box-shadow ไม่ใช้ `border-left` · ตัวขาวจุดที่รูปสว่างสุด: บน active 8.0:1+, hover (ดำ 14%) ≥ 6:1 · พื้นขาวโปร่ง 16% ถูกตัดเพราะได้แค่ 3.85:1 · token: `--sidebar-item-active-bg` / `-fg` เปลี่ยนค่า, เพิ่ม `--sidebar-item-active-edge`, `--sidebar-item-active-ring`, `--sidebar-item-active-shadow` · `--sidebar-item-hover-bg` 0.2 → 0.14
+- **2026-11-13 (animation เปลี่ยน menu item)** — ผู้ใช้เลือกแบบเลื่อน: พื้น/ขอบสว่างของ active ย้ายจากแต่ละ item ไปเป็น indicator ชิ้นเดียวใน `Sidebar.tsx` วัดตำแหน่ง item ที่มี `aria-current="page"` แล้วเลื่อนด้วย `translateY` · ไม่เพิ่ม token (ใช้ `--dur-normal`, `--ease-standard`, `--sidebar-item-active-*`) · item เก็บแค่ตัวหนา + สีตัวอักษร
+- **2026-11-13 (impeccable: แก้ accent ai slop ของ menu item)** — ผู้ใช้ชี้ว่าขอบซ้ายสว่าง + เส้นขอบโปร่งรอบ item เป็นท่า AI slop (accent bar บนการ์ดมุมโค้ง, craft floor ก็ refuse) → ลบทั้งคู่ · active แยกด้วยพื้นเข้มขึ้น 28% → 32% + semibold (hover 14%) · ลบ token `--sidebar-item-active-edge`, `-ring`, `-shadow` (เพิ่มและลบใน change ที่ยังไม่ commit)
+- **2026-11-13 (impeccable critique: My Space)** — critique 27/40: Time Left หลุดจอที่ 1280 (ตาราง 1215px / การ์ด ~830px), Resolved ขึ้น "เลยกำหนด", ไม่มีลำดับความสำคัญ, My Space ของ agent/approver ว่าง → default 5 คอลัมน์, เรียงตามความเร่งด่วน, แถบสรุปใต้ title (ไม่ใช่การ์ด KPI — ข้อความบรรทัดเดียว ใช้ icon + สีชุดเดียวกับ Time Left §4), ลิงก์งานตามสิทธิ์ · Time Left ของ `Resolved` แสดงแบบ closed (สีเทา) · ไม่เพิ่ม token
