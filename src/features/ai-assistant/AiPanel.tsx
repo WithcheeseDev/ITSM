@@ -97,7 +97,8 @@ export function AiPanel({ me, open, onOpenChange }: { me: User; open: boolean; o
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-[25rem]">
-        <SheetHeader className="border-b px-[var(--space-4)] py-[var(--space-3)]">
+        {/* right padding clears the 44px close button (top-2 right-2) so its hover fill never covers the text */}
+        <SheetHeader className="border-b py-[var(--space-3)] pl-[var(--space-4)] pr-[calc(var(--tap-target)+var(--space-4))]">
           <SheetTitle className="flex items-center gap-[var(--space-2)]">
             <Sparkles aria-hidden="true" className="size-[var(--icon-md)] text-accent" />
             AI Assistant
