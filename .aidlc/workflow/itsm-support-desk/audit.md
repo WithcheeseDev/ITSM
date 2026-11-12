@@ -444,3 +444,31 @@
 **Action**: change request — user asked for a red-white design "like CIMB"; clarified to red-white tone only, no CIMB logo / hex / name (HARD RULE #9, Requirements §1.2). Workflow: AI-DLC change request. Decisions: "use recommendations".
 **Artifacts**: decisions-design.md § Add-on (D3-15 rev) · .claude/rules/design-system.md §1, §2 (+ contrast table), §6 (Button destructive), §9 Add-on · src/styles/tokens.css (new primitives crimson / charcoal, neutral values → cool, primary / accent / ring repointed, status new → accent-soft, progress → info-soft; indigo / teal names kept, unused) · src/assets/logo.svg (fill → #b0142a; loaded via <img>, cannot read CSS vars) · src/shared/ui/button.tsx (destructive variant → outlined) · CircleX icon on the 4 destructive actions: UserMenu reset, RejectDialog ปฏิเสธ, ActionBar ยกเลิกเรื่อง, CallFormPage ทิ้งข้อมูล
 **Outcome**: pass — all text / UI pairs ≥ AA (primary 7.05, soft 8.25, accent 12.49, destructive 5.52, placeholder 5.04, input border 3.55, status progress 6.35, new 13.66). Found during browser check: progress badges on primary-soft turned pink-red next to rejected → moved to info-soft (recorded in design-system §9). validate-tokens clean, tsc ✓, build ✓, `npm test` 206 ✓, `npm run test:e2e` 3 ✓, UI audit 45 runs (375 / 768 / 1280): 0 overflow, 0 unlabeled, 0 console errors.
+
+### [2026-11-13T06:15:00Z] Change Request: Sidebar background — ลาย chevron ออกแบบเอง
+
+**Phase**: design → implementation (refine-spec-first)
+**Action**: change request — user asked for a sidebar background modelled on the CIMB Chevron. Declined to imitate it (third-party logo, HARD RULE #9; policy §7 forbids third-party logos as backgrounds even with rights; no official file). User chose a self-designed › chevron pattern.
+**Artifacts**: decisions-design.md § Add-on · .claude/rules/design-system.md §3 (token map), §7 (Sidebar background), §9 · src/styles/tokens.css (`--sidebar-pattern-color` = `--primary`, `--sidebar-pattern-opacity` 0.12, `--sidebar-pattern-size` 1.75rem) · src/styles/globals.css (`.sidebar-chevron::before` — colour from token, SVG used only as mask-image, fades out towards the top, pointer-events none, no animation) · src/app/layout/AppLayout.tsx (class on the ≥ lg aside and the < lg drawer)
+**Outcome**: pass — opacity raised 0.07 → 0.12 after browser check (0.07 near invisible); worst-case menu text on pattern 14.34:1. Browser: desktop sidebar + mobile drawer show the pattern. validate-tokens clean, tsc ✓, build ✓, `npm test` 206 ✓, `npm run test:e2e` 3 ✓, UI audit 45 runs: 0 overflow, 0 unlabeled, 0 console errors.
+
+### [2026-11-13T06:45:00Z] Change Request (update): Sidebar background → supplied image
+
+**Phase**: design → implementation (refine-spec-first)
+**Action**: user interrupted and supplied a red geometric image (abstract shapes, no logo) to use instead of the chevron pattern. The chevron pattern (never committed) was replaced.
+**Artifacts**: src/assets/sidebar-bg.webp (992×1586, 23 kB, user-supplied) · src/styles/tokens.css (`--sidebar-bg` → crimson-800 fallback; new `--sidebar-overlay`, `--sidebar-fg`, `--sidebar-border`, `--sidebar-ring`, `--sidebar-item-hover-bg`; `--sidebar-item-active-bg/fg` → white / crimson-700; `--sidebar-pattern-*` removed — added and removed in the same uncommitted change) · src/styles/globals.css (`.sidebar-surface`: image `cover` left top + overlay, semantic tokens re-pointed inside so nav links, drawer title, close button and focus ring turn light) · src/app/layout/AppLayout.tsx · design-system.md §3, §7, §9 · decisions-design.md Add-on update
+**Outcome**: pass — measured on the real image at sidebar heights 560 / 788 / 1100 px: white text on the bare image min 2.72:1 (fail) → with 35% overlay ≥ 5:1; active item 9.34:1; hover darkens (black 20%) so contrast only rises. Focus ring inside sidebar = white. Browser: desktop sidebar + mobile drawer. validate-tokens clean, tsc ✓, build ✓ (image emitted as hashed asset), `npm test` 206 ✓, `npm run test:e2e` 3 ✓, UI audit 45 runs: 0 overflow, 0 unlabeled, 0 console errors.
+
+### [2026-11-13T07:15:00Z] Change Request: Sidebar เต็ม pane ซ้าย
+
+**Phase**: design → implementation (refine-spec-first)
+**Action**: change request — sidebar full height on the left (≥ lg). Plan approved ("เริ่มทำ").
+**Artifacts**: design-system.md §7 (Shell diagram), §9 · decisions-design.md Add-on · src/app/layout/AppLayout.tsx (≥ lg: aside `sticky top-0 h-dvh` with the wordmark row on top (56px, `tone="light"`), header + main in the right column; < lg unchanged — header wordmark `lg:hidden`; logo gets a 1px `--sidebar-border` ring on the dark surface because the crimson square blended into the red image)
+**Outcome**: layout pass — 1280 / 768 / 375 checked in the browser; validate-tokens clean, tsc ✓, build ✓, `npm test` 206 ✓, `npm run test:e2e` 3 ✓, walk as 8 users 0 errors (12 intended `route.denied` warns). UI audit found page overflow on สมชาย's My Space (768: 288 px, 1280: 32 px) — not caused by this change: the TimeLeft sr-only "ใกล้ครบกำหนด" span (position absolute) escapes CallTable's `overflow-x-auto` wrapper, which is not a containing block; it appears only now because call_001 entered the < 25 % SLA window in real time. Reported to the user, not fixed (outside this change).
+
+### [2026-11-13T07:40:00Z] Bug fix: table page overflow from sr-only text
+
+**Phase**: implementation (bug fix, user approved "แก้เลย")
+**Action**: TimeLeft warning `sr-only` span (position absolute) escaped CallTable's `overflow-x-auto` wrapper (not a containing block) and widened the page on My Space ≥ md.
+**Artifacts**: src/shared/components/CallTable.tsx, src/features/catalog/ServiceTable.tsx (wrapper → `relative`) · docs/postmortems/table-sr-only-overflow.md
+**Outcome**: pass — before: overflow 288 px (768) / 32 px (1280); after: UI audit 45 runs overflow 0, console 0 · tsc ✓, `npm test` 206 ✓, `npm run test:e2e` 3 ✓, build ✓.

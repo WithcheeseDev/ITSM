@@ -45,7 +45,7 @@
 |---|---|---|
 | Primitive | `--palette-*`, `--fs-*`, `--fw-*`, `--space-*`, `--radius-*`, `--shadow-*`, `--dur-*`, `--ease-*` | `--palette-indigo-600` |
 | Semantic | ชื่อตาม shadcn/ui: `--background`, `--foreground`, `--card`, `--primary(-hover/-active/-foreground/-soft)`, `--accent(-soft)`, `--muted(-foreground)`, `--border`, `--input`, `--ring`, `--success/warning/destructive/info(-soft/-soft-foreground)`, layout `--container-max`, `--form-max`, `--gutter`, `--sidebar-width`, `--header-height`, `--section-gap`, `--tap-target` | `--primary` |
-| Component | `--button-*`, `--input-*`, `--card-*`, `--table-*`, `--badge-*`, `--sidebar-*`, `--status-*`, `--icon-*`, `--logo-*` | `--status-waiting-bg` |
+| Component | `--button-*`, `--input-*`, `--card-*`, `--table-*`, `--badge-*`, `--sidebar-*` (รวม `--sidebar-fg`, `--sidebar-overlay`, `--sidebar-ring`), `--status-*`, `--icon-*`, `--logo-*` | `--status-waiting-bg` |
 
 **Tailwind v4 wiring** (`src/styles/globals.css`):
 ```css
@@ -121,18 +121,22 @@ component ใช้ utility (`bg-primary`, `text-muted-foreground`) หรือ
 - Loading: skeleton โทน `--muted` (ไม่ใช้ spinner เปล่า) · Empty state: icon + ข้อความ + ปุ่ม action หลัก
 
 ## 7. Page Layout Blueprint
-**Shell (ทุกหน้า หลัง login)**
+**Shell (ทุกหน้า หลัง login)** — ≥ lg: sidebar สูงเต็มจอด้านซ้าย (Add-on 2026-11-13)
 ```
-┌ Header 56px: [☰ < lg] Logo ··········· [AI Assistant] [ชื่อผู้ใช้ ▾] ┐
-├ Sidebar 240px (≥ lg, drawer < lg) ┬ Main: container ≤ 1280, padding 16/32 ┤
-│ My Space                          │  Page title + action ขวา               │
-│ Service Catalog                   │  [section card] gap 24                 │
-│ แจ้งเรื่องใหม่                      │  [section card]                        │
-│ ค้นหาเรื่อง                         │                                        │
-│ อนุมัติ (approver)                  │                                        │
-└───────────────────────────────────┴────────────────────────────────────────┘
+┌ Sidebar 240px, h = 100dvh, sticky ┬ Header 56px: ··········· [AI Assistant] [ชื่อผู้ใช้ ▾] ┐
+│ [Logo] ITSM Support Desk (56px)   │                                                     │
+│ ───────────                       ├ Main: container ≤ 1280, padding 16/32 ──────────────┤
+│ My Space                          │  Page title + action ขวา                            │
+│ Service Catalog                   │  [section card] gap 24                              │
+│ แจ้งเรื่องใหม่                      │  [section card]                                     │
+│ ค้นหาเรื่อง                         │                                                     │
+│ อนุมัติ (approver)                  │                                                     │
+└───────────────────────────────────┴─────────────────────────────────────────────────────┘
 ```
+< lg: header เต็มความกว้าง `[☰] Logo ··· [AI] [ผู้ใช้]` + sidebar เป็น drawer (เหมือนเดิม)
 sidebar แบน ทุกหน้าเป็น item ระดับบนพร้อม icon · active = `--sidebar-item-active-*` + `aria-current="page"`
+
+Sidebar background: รูป `src/assets/sidebar-bg.webp` (ลายเรขาคณิตแดง ผู้ใช้ให้มา 2026-11-13) `cover` ชิดซ้ายบน + overlay `--sidebar-overlay` ทับทั้งแผ่นให้ข้อความขาวผ่าน AA · พื้นสำรองระหว่างโหลดรูป `--sidebar-bg` (crimson-800) · ภายใน `.sidebar-surface` เปลี่ยนค่า `--foreground` / `--muted-foreground` → `--sidebar-fg` (ขาว), `--muted` → `--sidebar-item-hover-bg` (ดำ 20%), `--border` → `--sidebar-border`, `--ring` → `--sidebar-ring` (ขาว) · active item = พื้นขาว + ตัวอักษร crimson-700 · ใช้ทั้ง sidebar ถาวร (≥ lg) และ drawer (< lg)
 
 | Page | Blueprint |
 |---|---|
@@ -160,3 +164,5 @@ sidebar แบน ทุกหน้าเป็น item ระดับบน�
 - **2026-11-12 (Task 1.3)** — `@theme inline` ใน `globals.css` **ไม่** map `--font-sans` / `--radius-*` / `--shadow-*` (ตัวอย่าง §3 จะอ้างตัวเองวน) เพราะ `tokens.css` ประกาศชื่อเดียวกันแบบ unlayered ทับ theme layer ของ Tailwind อยู่แล้ว · `@custom-variant dark` ผูกกับ class `.dark` ที่ไม่ใช้ → `dark:` ใน shadcn ไม่ทำงาน (light only) · shadcn ใช้ `accent` เป็นสี hover แต่ของเรา accent = teal → แก้ hover เป็น `muted` ทุก component
 - **2026-11-12 (Task 2.8)** — เพิ่ม token layout `--form-max: 55rem` (880px) สำหรับคอลัมน์ฟอร์ม Add Support Call ตาม §7 (เดิมระบุ "กว้าง ≤ 880" แต่ไม่มี token)
 - **2026-11-13 (change request: โทนแดง-ขาว)** — D3-15 rev: primary indigo → crimson `#B0142A`, accent teal → charcoal `#2E3440`, neutral อุ่น → neutral เย็น (`#FAFAFA` page) · ไม่ใช้โลโก้/hex/ชื่อแบรนด์ขององค์กรใด (HARD RULE #9) · เพิ่ม primitive `--palette-crimson-*`, `--palette-charcoal-*` · `--palette-indigo-*`, `--palette-teal-*` คงชื่อไว้ (ห้ามลบชื่อ token) แต่ไม่มี semantic ใดอ้างแล้ว · ปุ่ม destructive เปลี่ยนจากแดงเต็มพื้นเป็นขอบแดง + icon `CircleX` เพราะแดง primary กับ `--destructive` ต่างกันแค่ 1.28:1 · StatusBadge: กลุ่ม progress เดิมใช้ `--primary-soft` (กลายเป็นชมพูแดง ใกล้กลุ่ม rejected) → ย้ายเป็น `--info-soft` (ฟ้า, 6.35:1) และกลุ่ม new ย้ายเป็น `--accent-soft` (charcoal, 13.66:1)
+- **2026-11-13 (change request: sidebar background)** — ผู้ใช้ขอใช้ CIMB Chevron เป็นต้นแบบ → ไม่ทำ (โลโก้บุคคลที่สาม, HARD RULE #9 / policy §7) · ลองลาย chevron ออกแบบเองก่อน แล้วผู้ใช้ส่งรูปลายเรขาคณิตแดงมาแทน (ไม่ใช่โลโก้) → sidebar เป็นพื้นเข้ม: รูป `cover` + overlay `rgb(24 24 27 / 0.35)` · วัดจากรูปจริงที่ความสูง sidebar 560 / 788 / 1100px: ข้อความขาวบนรูปเปล่าต่ำสุด 2.72:1 (ไม่ผ่าน) → หลังใส่ overlay ≥ 5:1 · hover ใช้ดำ 20% (ไม่ใช้ขาว เพราะทำให้ contrast ต่ำลง) · active = พื้นขาว / crimson-700 9.34:1 · token ใหม่ `--sidebar-fg`, `--sidebar-item-hover-bg`, `--sidebar-border`, `--sidebar-overlay`, `--sidebar-ring` · `--sidebar-bg` เปลี่ยนค่าเป็น crimson-800 · `--sidebar-item-active-bg/fg` เปลี่ยนค่า
+- **2026-11-13 (change request: sidebar เต็ม pane ซ้าย)** — ≥ lg: sidebar `sticky top-0 h-dvh` ตั้งแต่ขอบบนถึงขอบล่างของจอ · logo (wordmark) ย้ายจาก header ไปแถวบนสุดของ sidebar สูงเท่า header (56px) ตัวอักษรขาว (`--sidebar-fg`) · สี่เหลี่ยม crimson ของ logo กลืนกับพื้นแดง → ขอบ 1px `--sidebar-border` เฉพาะใน sidebar · header อยู่เฉพาะคอลัมน์เนื้อหา ยัง sticky · < lg ไม่เปลี่ยน

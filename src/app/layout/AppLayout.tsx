@@ -12,19 +12,24 @@ import { ROUTES } from '../routes';
 import { Sidebar } from './Sidebar';
 import { UserMenu } from './UserMenu';
 
-function Wordmark() {
+/** `tone="light"` = white text for the dark sidebar surface. */
+function Wordmark({ tone = 'brand' }: { tone?: 'brand' | 'light' }) {
   return (
     <Link
       to={ROUTES.mySpace.path}
-      className="flex min-h-[var(--tap-target)] min-w-0 items-center gap-[var(--space-2)] rounded-[var(--radius-md)] font-semibold text-primary"
+      className={`flex min-h-[var(--tap-target)] min-w-0 items-center gap-[var(--space-2)] rounded-[var(--radius-md)] font-semibold ${tone === 'light' ? 'text-[var(--sidebar-fg)]' : 'text-primary'}`}
     >
-      <img src={logoUrl} alt="" className="shrink-0 h-[var(--logo-height-mobile)] w-auto object-contain lg:h-[var(--logo-height)]" />
+      <img
+        src={logoUrl}
+        alt=""
+        className={`shrink-0 h-[var(--logo-height-mobile)] w-auto object-contain lg:h-[var(--logo-height)] ${tone === 'light' ? 'rounded-[var(--radius-sm)] ring-1 ring-[var(--sidebar-border)]' : ''}`}
+      />
       <span className="truncate">ITSM Support Desk</span>
     </Link>
   );
 }
 
-/** Shell (design-system §7): header 56px · sidebar 240px ≥ lg · drawer < lg. */
+/** Shell (design-system §7): ≥ lg sidebar 240px full height (logo on top) + header over the content column · < lg header + drawer. */
 export function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
@@ -32,46 +37,52 @@ export function AppLayout() {
   const aiAllowed = can(user, 'ai:use', dataStore.getDataset().rolePermissions);
 
   return (
-    <div className="min-h-dvh bg-background">
-      <header className="sticky top-0 z-40 flex h-[var(--header-height)] items-center gap-[var(--space-2)] border-b bg-card px-[max(var(--gutter),env(safe-area-inset-left))] lg:px-[var(--gutter-lg)]">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          aria-label="เปิดเมนู"
-          aria-expanded={drawerOpen}
-          onClick={() => setDrawerOpen(true)}
-        >
-          <Menu aria-hidden="true" className="size-[var(--icon-md)]" />
-        </Button>
-        <Wordmark />
-        <div className="ml-auto flex shrink-0 items-center gap-[var(--space-1)]">
-          {aiAllowed && (
-            <Button variant="ghost" aria-label="AI Assistant" aria-expanded={aiOpen} onClick={() => setAiOpen(true)} className="text-accent">
-              <Sparkles aria-hidden="true" className="size-[var(--icon-md)]" />
-              <span className="hidden sm:inline">AI Assistant</span>
-            </Button>
-          )}
-          <UserMenu />
+    <div className="flex min-h-dvh bg-background">
+      <aside className="sticky top-0 hidden h-dvh w-[var(--sidebar-width)] shrink-0 flex-col overflow-y-auto border-r sidebar-surface lg:flex">
+        <div className="flex h-[var(--header-height)] shrink-0 items-center border-b px-[var(--space-4)]">
+          <Wordmark tone="light" />
         </div>
-      </header>
+        <Sidebar />
+      </aside>
 
-      {user && aiAllowed && <AiPanel me={user} open={aiOpen} onOpenChange={setAiOpen} />}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-40 flex h-[var(--header-height)] items-center gap-[var(--space-2)] border-b bg-card px-[max(var(--gutter),env(safe-area-inset-left))] lg:px-[var(--gutter-lg)]">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            aria-label="เปิดเมนู"
+            aria-expanded={drawerOpen}
+            onClick={() => setDrawerOpen(true)}
+          >
+            <Menu aria-hidden="true" className="size-[var(--icon-md)]" />
+          </Button>
+          <div className="min-w-0 lg:hidden">
+            <Wordmark />
+          </div>
+          <div className="ml-auto flex shrink-0 items-center gap-[var(--space-1)]">
+            {aiAllowed && (
+              <Button variant="ghost" aria-label="AI Assistant" aria-expanded={aiOpen} onClick={() => setAiOpen(true)} className="text-accent">
+                <Sparkles aria-hidden="true" className="size-[var(--icon-md)]" />
+                <span className="hidden sm:inline">AI Assistant</span>
+              </Button>
+            )}
+            <UserMenu />
+          </div>
+        </header>
 
-      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent side="left" className="w-[var(--sidebar-width)] bg-[var(--sidebar-bg)] p-0">
-          <SheetHeader className="border-b px-[var(--space-4)] py-[var(--space-3)]">
-            <SheetTitle>เมนู</SheetTitle>
-            <SheetDescription className="sr-only">เลือกหน้าที่ต้องการไป</SheetDescription>
-          </SheetHeader>
-          <Sidebar onNavigate={() => setDrawerOpen(false)} />
-        </SheetContent>
-      </Sheet>
+        {user && aiAllowed && <AiPanel me={user} open={aiOpen} onOpenChange={setAiOpen} />}
 
-      <div className="flex">
-        <aside className="sticky top-[var(--header-height)] hidden h-[calc(100dvh-var(--header-height))] w-[var(--sidebar-width)] shrink-0 overflow-y-auto border-r bg-[var(--sidebar-bg)] lg:block">
-          <Sidebar />
-        </aside>
+        <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <SheetContent side="left" className="sidebar-surface w-[var(--sidebar-width)] p-0">
+            <SheetHeader className="border-b px-[var(--space-4)] py-[var(--space-3)]">
+              <SheetTitle>เมนู</SheetTitle>
+              <SheetDescription className="sr-only">เลือกหน้าที่ต้องการไป</SheetDescription>
+            </SheetHeader>
+            <Sidebar onNavigate={() => setDrawerOpen(false)} />
+          </SheetContent>
+        </Sheet>
+
         <main className="min-w-0 flex-1">
           <div className="mx-auto w-full max-w-[var(--container-max)] px-[max(var(--gutter),env(safe-area-inset-left))] py-[var(--space-6)] lg:px-[var(--gutter-lg)] lg:py-[var(--space-8)]">
             <Outlet />

@@ -188,9 +188,15 @@
   --badge-radius: var(--radius-full);
   --badge-padding-x: var(--space-2);
 
-  --sidebar-bg: var(--palette-neutral-0);
-  --sidebar-item-active-bg: var(--primary-soft);
-  --sidebar-item-active-fg: var(--primary-soft-foreground);
+  /* Dark sidebar on src/assets/sidebar-bg.webp (design-system §7) */
+  --sidebar-bg: var(--palette-crimson-800);           /* fallback while the image loads */
+  --sidebar-overlay: rgb(24 24 27 / 0.35);            /* keeps white text ≥ 5:1 over the brightest shapes */
+  --sidebar-fg: var(--palette-neutral-0);
+  --sidebar-border: rgb(255 255 255 / 0.2);
+  --sidebar-ring: var(--palette-neutral-0);
+  --sidebar-item-hover-bg: rgb(0 0 0 / 0.2);          /* darken, never lighten — lighter lowers contrast */
+  --sidebar-item-active-bg: var(--palette-neutral-0);
+  --sidebar-item-active-fg: var(--palette-crimson-700);
 
   /* Status groups (StatusBadge — always icon + label) */
   /* D3-15 rev: progress moved off primary-soft — red-tinted badges must stay "rejected" only */

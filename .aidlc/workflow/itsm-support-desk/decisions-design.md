@@ -230,3 +230,15 @@
   3. Accent charcoal `#2E3440` (12.49:1) · neutral เย็น page `#FAFAFA`
 - **แทนที่**: D3-15 เดิม (indigo + teal บน neutral อุ่น)
 - **Sync**: `.claude/rules/design-system.md` §1, §2, §6, §9 · `src/styles/tokens.css`
+
+### 2026-11-13 — Sidebar background: ลาย chevron ออกแบบเอง (change request)
+- **คำขอ**: background ของ sidebar โดยใช้ CIMB Chevron เป็นต้นแบบ
+- **ไม่ทำตามต้นแบบ**: chevron ของ CIMB เป็นโลโก้บุคคลที่สาม (HARD RULE #9) · ผู้ใช้แจ้งว่ามีสิทธิ์ใช้แบรนด์ แต่ policy §7 ห้ามใช้โลโก้บุคคลที่สามเป็นพื้นหลังแม้มีสิทธิ์ และยังไม่มีไฟล์ทางการ
+- **Decision** (ผู้ใช้เลือก): ลาย chevron `›` ออกแบบเอง ทำด้วย CSS ล้วน สีจาก token · ครึ่งล่างของ sidebar จางขึ้นด้านบน
+- **Sync**: `.claude/rules/design-system.md` §3, §7, §9 · `src/styles/tokens.css` · `src/styles/globals.css`
+- **อัปเดต (วันเดียวกัน)**: ผู้ใช้ส่งรูปลายเรขาคณิตแดง (`src/assets/sidebar-bg.webp`) ให้ใช้แทนลาย chevron → sidebar พื้นเข้ม ข้อความขาว + overlay ดำ 35% ให้ผ่าน AA · ลาย chevron ถูกแทนที่ (ยังไม่เคย commit)
+
+### 2026-11-13 — Sidebar เต็ม pane ซ้าย (change request)
+- **คำขอ**: ให้ sidebar แสดงเต็ม pane ซ้ายมือ
+- **Decision**: ≥ lg sidebar สูงเต็มจอ (ไม่อยู่ใต้ header) · logo ย้ายไปบนสุดของ sidebar · header อยู่เฉพาะฝั่งเนื้อหา · < lg (header + drawer) ไม่เปลี่ยน
+- **Sync**: `.claude/rules/design-system.md` §7, §9 · `src/app/layout/AppLayout.tsx`
