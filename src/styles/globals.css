@@ -158,6 +158,55 @@
   background: url("../assets/ribbon-tab.webp") center / 100% 100% no-repeat, var(--primary);
 }
 
+/* AI Assistant FAB: fixed bottom-right; < md lifts above the sticky OK/Cancel bar of the call form. */
+.ai-fab {
+  position: fixed;
+  z-index: 40;
+  right: max(var(--fab-offset), env(safe-area-inset-right));
+  bottom: max(var(--fab-offset), env(safe-area-inset-bottom));
+}
+@media (max-width: 47.98rem) {
+  body:has([data-sticky-actions]) .ai-fab {
+    bottom: calc(var(--tap-target) + 2 * var(--space-3) + var(--space-4) + env(safe-area-inset-bottom));
+  }
+}
+
+/* AI FAB robot (design-system §9): 11-frame sprite strip (5 drawn frames + 6 dissolve in-betweens for the smile),
+   played on a 40ms grid with step-end holds; the smile eases in and back out so the loop has no jump.
+   Keyframes generated from a (frame, ticks) list. Reduced motion → frame 1 only. */
+.ai-fab-robot {
+  background: url("../assets/ai-fab-robot-frames.webp") 0 0 / 1100% 100% no-repeat;
+  animation: ai-fab-robot 3.04s step-end infinite;
+}
+@keyframes ai-fab-robot {
+  0.0% { background-position-x: 0%; }
+  39.47% { background-position-x: calc(100% / 10); }
+  42.11% { background-position-x: calc(200% / 10); }
+  46.05% { background-position-x: calc(100% / 10); }
+  48.68% { background-position-x: 0%; }
+  59.21% { background-position-x: calc(300% / 10); }
+  60.53% { background-position-x: calc(400% / 10); }
+  61.84% { background-position-x: calc(500% / 10); }
+  63.16% { background-position-x: calc(600% / 10); }
+  68.42% { background-position-x: calc(700% / 10); }
+  69.74% { background-position-x: calc(800% / 10); }
+  71.05% { background-position-x: calc(900% / 10); }
+  72.37% { background-position-x: 100%; }
+  88.16% { background-position-x: calc(900% / 10); }
+  89.47% { background-position-x: calc(800% / 10); }
+  90.79% { background-position-x: calc(700% / 10); }
+  92.11% { background-position-x: calc(600% / 10); }
+  96.05% { background-position-x: calc(500% / 10); }
+  97.37% { background-position-x: calc(400% / 10); }
+  98.68% { background-position-x: calc(300% / 10); }
+  100% { background-position-x: 0%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-fab-robot {
+    animation: none !important;
+  }
+}
+
 /* Sidebar: supplied red geometric image + dark overlay. */
 .sidebar-surface {
   background:

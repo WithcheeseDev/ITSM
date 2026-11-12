@@ -205,6 +205,10 @@
   --sidebar-radius: var(--radius-lg);
   --sidebar-shadow: var(--shadow-lg);
 
+  /* AI Assistant floating action button (bottom-right, all breakpoints) */
+  --fab-size: 2.75rem;         /* 44 = --tap-target */
+  --fab-offset: var(--space-6);
+
   /* Shell canvas behind the two panels (≥ lg) — dark enough that the light content panel reads as its own surface */
   --app-canvas: var(--palette-neutral-100);
   /* Content panel — the surface right of the sidebar (≥ lg: framed like the sidebar · < lg: full-bleed) */

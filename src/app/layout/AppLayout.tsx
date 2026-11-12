@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router';
-import { ChevronLeft, ChevronRight, Menu, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Menu } from 'lucide-react';
 import { dataStore } from '@/data/repositories';
 import { can } from '@/domain/access';
 import { AiPanel } from '@/features/ai-assistant/AiPanel';
@@ -56,7 +56,7 @@ function readCollapsed(): boolean {
   }
 }
 
-/** Shell (design-system §7): ≥ lg sidebar as two floating cards (banner + menu) + framed content panel that scrolls itself · < lg header + drawer. */
+/** Shell (design-system §7): ≥ lg sidebar as two floating cards (banner + menu) + right column of a header card (height = banner card) and a framed content panel that scrolls itself · < lg sticky header + drawer. */
 export function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
@@ -120,11 +120,14 @@ export function AppLayout() {
         </Tooltip>
       </aside>
 
-      <div
-        ref={panelRef}
-        className="flex min-w-0 flex-1 flex-col bg-[var(--content-panel-bg)] content-panel-surface lg:sticky lg:top-[var(--sidebar-inset)] lg:my-[var(--sidebar-inset)] lg:mr-[var(--sidebar-inset)] lg:h-[calc(100dvh-2*var(--sidebar-inset))] lg:overflow-y-auto lg:rounded-[var(--content-panel-radius)] lg:shadow-[var(--content-panel-shadow)]"
-      >
-        <header className="sticky top-0 z-40 flex h-[var(--header-height)] shrink-0 items-center gap-[var(--space-2)] bg-[var(--content-panel-bg)] lg:bg-[color-mix(in_srgb,var(--content-panel-bg)_75%,transparent)] lg:backdrop-blur-md px-[max(var(--gutter),env(safe-area-inset-left))] lg:px-[var(--gutter-lg)]">
+      <div className="flex min-w-0 flex-1 flex-col lg:sticky lg:top-[var(--sidebar-inset)] lg:my-[var(--sidebar-inset)] lg:mr-[var(--sidebar-inset)] lg:h-[calc(100dvh-2*var(--sidebar-inset))] lg:gap-[var(--space-2)]">
+        {/* ≥ lg: own card, height follows the banner card beside it */}
+        <header
+          className={cn(
+            'sticky top-0 z-40 flex h-[var(--header-height)] shrink-0 items-center gap-[var(--space-2)] bg-[var(--content-panel-bg)] px-[max(var(--gutter),env(safe-area-inset-left))] lg:static lg:rounded-[var(--content-panel-radius)] lg:px-[var(--gutter-lg)] lg:shadow-[var(--content-panel-shadow)] lg:transition-[height] lg:duration-[var(--dur-normal)] lg:ease-[var(--ease-standard)]',
+            collapsed ? 'lg:h-[var(--sidebar-rail-width)]' : 'lg:h-[calc(var(--sidebar-width)/3)]',
+          )}
+        >
           <Button
             variant="ghost"
             size="icon"
@@ -139,36 +142,57 @@ export function AppLayout() {
             <Wordmark />
           </div>
           <div className="ml-auto flex shrink-0 items-center gap-[var(--space-1)]">
-            {aiAllowed && (
-              <Button variant="ghost" aria-label="AI Assistant" aria-expanded={aiOpen} onClick={() => setAiOpen(true)} className="text-accent">
-                <Sparkles aria-hidden="true" className="size-[var(--icon-md)]" />
-                <span className="hidden sm:inline">AI Assistant</span>
-              </Button>
-            )}
             <UserMenu />
           </div>
         </header>
 
-        {user && aiAllowed && <AiPanel me={user} open={aiOpen} onOpenChange={setAiOpen} />}
+        <div
+          ref={panelRef}
+          className="flex min-h-0 min-w-0 flex-1 flex-col bg-[var(--content-panel-bg)] content-panel-surface lg:overflow-y-auto lg:rounded-[var(--content-panel-radius)] lg:shadow-[var(--content-panel-shadow)]"
+        >
+          {user && aiAllowed && <AiPanel me={user} open={aiOpen} onOpenChange={setAiOpen} />}
 
-        <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-          <SheetContent side="left" className="on-brand sidebar-surface w-[var(--sidebar-width)] p-0">
-            <SheetHeader className="sr-only">
-              <SheetTitle>เมนู</SheetTitle>
-              <SheetDescription>เลือกหน้าที่ต้องการไป</SheetDescription>
-            </SheetHeader>
-            <SidebarBanner divider onNavigate={() => setDrawerOpen(false)} />
-            <Sidebar onNavigate={() => setDrawerOpen(false)} />
-          </SheetContent>
-        </Sheet>
+          {aiAllowed && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="AI Assistant"
+                  aria-expanded={aiOpen}
+                  onClick={() => setAiOpen(true)}
+                  className="ai-fab flex size-[var(--fab-size)] items-center justify-center rounded-full bg-card shadow-[0_0_0_1px_var(--border),var(--shadow-lg)] transition-colors duration-[var(--dur-fast)] hover:bg-muted"
+                >
+                  <span aria-hidden="true" className="ai-fab-robot size-9" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="left">AI Assistant</TooltipContent>
+            </Tooltip>
+          )}
 
-        <main className="min-w-0 flex-1">
-          <div className="mx-auto w-full max-w-[var(--container-max)] px-[max(var(--gutter),env(safe-area-inset-left))] py-[var(--space-6)] lg:px-[var(--gutter-lg)] lg:py-[var(--space-8)]">
-            <div key={pathname} className="page-enter">
-              <Outlet />
+          <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+            <SheetContent side="left" className="on-brand sidebar-surface w-[var(--sidebar-width)] p-0">
+              <SheetHeader className="sr-only">
+                <SheetTitle>เมนู</SheetTitle>
+                <SheetDescription>เลือกหน้าที่ต้องการไป</SheetDescription>
+              </SheetHeader>
+              <SidebarBanner divider onNavigate={() => setDrawerOpen(false)} />
+              <Sidebar onNavigate={() => setDrawerOpen(false)} />
+            </SheetContent>
+          </Sheet>
+
+          <main className="min-w-0 flex-1">
+            <div
+              className={cn(
+                'mx-auto w-full max-w-[var(--container-max)] px-[max(var(--gutter),env(safe-area-inset-left))] py-[var(--space-6)] lg:px-[var(--gutter-lg)] lg:py-[var(--space-8)]',
+                aiAllowed && 'pb-[calc(var(--fab-size)+2*var(--fab-offset))] lg:pb-[calc(var(--fab-size)+2*var(--fab-offset))]',
+              )}
+            >
+              <div key={pathname} className="page-enter">
+                <Outlet />
+              </div>
             </div>
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
     </div>
   );

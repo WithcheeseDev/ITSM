@@ -578,3 +578,9 @@
 - 17:55 rail compact: --sidebar-rail-width 72 → 56, เมนูหุบ px --space-1 (ปุ่ม 48 กว้าง), robot 40px · tokens.css, AppLayout.tsx, Sidebar.tsx · design-system §9
 - 18:05 ribbon tab ใช้ภาพผู้ใช้เป็นพื้น: src/assets/ribbon-tab.webp 48×88, .ribbon-tab-surface (globals.css), hover brightness 1.1 · AppLayout.tsx · design-system §9
 - 18:20 ภาพพื้น main content ยืดเต็มกรอบ panel: `.content-panel-surface` cover → `center / 100% 100%` (ผู้ใช้เลือก แทน cover ที่ตัดขอบ) · globals.css · design-system §9
+- 21:30 AI Assistant ย้ายจาก header เป็น FAB ขวาล่าง (spec): token ใหม่ --fab-size, --fab-offset, --accent-hover · design-system §9
+- 21:45 FAB ใช้รูป robot ผู้ใช้: src/assets/ai-fab-robot.webp 96×96, พื้น --card + ขอบ --border, ลบ --accent-hover · AppLayout.tsx, tokens.css · design-system §9
+- 21:55 header แยกเป็น card ≥ lg (spec): สูงเท่า banner (80 ขยาย / 56 หุบ), gap 8px กับ content panel · design-system §9
+- 22:05 FAB compact: --fab-size 56 → 44, robot 36px · tokens.css, AppLayout.tsx · design-system §9
+- 22:20 FAB robot animation: codex-image sprite sheet 8 frame (ref = robot เดิม) → src/assets/ai-fab-robot-frames.webp 768×96, .ai-fab-robot step-end loop 3s, reduced-motion ค้าง frame 1 · ลบ ai-fab-robot.webp · AppLayout.tsx, globals.css · design-system §9
+- 22:35 FAB robot ลื่นขึ้น: เพิ่ม frame คั่น dissolve (magick -morph) → strip 11 frame, 40ms grid, ยิ้มขึ้น/ลงแบบไล่ · globals.css, ai-fab-robot-frames.webp · design-system §9
