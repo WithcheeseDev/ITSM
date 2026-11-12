@@ -97,3 +97,12 @@ server: {
 - Output guard ฝั่ง server: `kind = navigate` ต้องมี route อยู่ในชุด `aiNavigable: true` ไม่งั้นถือว่า output ผิด → `502` → browser fallback (เดิม) · instructions ไม่ inline รายการ route แล้ว ให้เรียก `searchPages`
 - สิทธิ์ตาม role ยังตรวจที่ browser (`can()` ใน AiPanel, US-033) · contract `{ text, page }` ไม่เปลี่ยน (ไม่ส่ง role / user id, FR-114)
 - **อัปเดต (วันเดียวกัน, verify กับ Azure จริง)**: บาง request ค้างราว 7.5 วินาที (ปกติ 0.6–0.8 วินาที) ทำให้ timeout 9 วินาทีของทั้ง loop หมด → `stallRetryFetch` ใน `server/ai/model.ts` ตัด request ที่เกิน 3.5 วินาทีแล้วยิงใหม่ 1 ครั้ง (ใช้กับทุก provider, ไม่ retry เมื่อผู้เรียก abort หรือ error อื่น) · instructions แยก "ถามว่ามีบริการอะไร / ดู catalog" เป็น navigate ไม่ใช่ draft · route ใช้ตามที่ `searchPages` คืน ไม่เติม param
+
+### 2026-11-13 — คุยคำถามทั่วไป (`kind: "reply"`)
+- ผู้ใช้ขอให้ agent ตอบคำทักทาย / คำถามทั่วไปได้ (เดิมตอบ `unknown` → "ยังไม่เข้าใจคำขอนี้")
+- Output ของ agent เพิ่ม `kind: "reply"` และ field `reply: string | null` (ทุก key ยัง required เพราะ strict schema) · `reply` มีค่าเฉพาะ kind `reply`, kind อื่นเป็น `null`
+- ลำดับตัดสิน: ปัญหาจริง / ขอบริการ → `draft` · อยากไปหน้า → `navigate` · ทักทาย ขอบคุณ ถามว่าช่วยอะไรได้ ถามความรู้ IT ทั่วไป หรือคำถามทั่วไปอื่น → `reply` · อ่านไม่ออก → `unknown`
+- กติกาคำตอบ: ภาษาเดียวกับผู้ใช้ · ข้อความล้วนไม่มี markdown · ≤ 500 ตัวอักษร · ห้ามอ้างว่าสร้าง/แก้เรื่องแล้ว · ห้ามเดาสถานะเรื่องหรือข้อมูลของผู้ใช้ (agent ไม่เห็นข้อมูล) · คำถามนอกงาน IT ตอบสั้นแล้วชวนกลับมาที่สิ่งที่ช่วยได้ · ห้ามใส่ข้อมูลส่วนบุคคล
+- Server guard: kind `reply` ที่ `reply` ว่าง → `502` · ยาวเกิน 1000 ตัวอักษร → ตัดเหลือ 1000 · ไม่ log ข้อความ reply
+- Browser: `AiResult` เพิ่ม `{ kind: "reply"; text }` แสดงเป็นข้อความธรรมดา (React escape, ไม่ render HTML) · kind `reply` ที่ไม่มีข้อความ → `bad_output` → fallback · rule-based mock ไม่เปลี่ยน
+- ยังส่งทีละข้อความ ไม่มีประวัติสนทนา (FR-114 คงเดิม: `{ text, page }`)

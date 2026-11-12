@@ -4,8 +4,8 @@ import { STATIC_ROUTES } from '@/features/ai-assistant/ruleBased';
 import { APP_STATIC_ROUTES } from '../../../server/aiAssist';
 
 const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } });
-const out = (o: Partial<Record<'kind' | 'serviceDefinitionId' | 'route' | 'summary', string | null>>) =>
-  ok({ kind: 'unknown', serviceDefinitionId: null, route: null, summary: null, ...o });
+const out = (o: Partial<Record<'kind' | 'serviceDefinitionId' | 'route' | 'summary' | 'reply', string | null>>) =>
+  ok({ kind: 'unknown', serviceDefinitionId: null, route: null, summary: null, reply: null, ...o });
 
 async function ask(text = 'เมาส์เสีย คลิกไม่ติด') {
   const { askAssistant } = await import('@/features/ai-assistant/assistant');
@@ -57,6 +57,14 @@ describe('AzureAssistant via askAssistant (VITE_AI_MODE=azure)', () => {
   it('model answers unknown → unknown without notice', async () => {
     vi.mocked(fetch).mockResolvedValue(out({}));
     expect(await ask('สวัสดี')).toEqual({ result: { kind: 'unknown' }, notice: null });
+  });
+
+  it('model replies → reply text without notice; reply kind with no text → fallback', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(out({ kind: 'reply', reply: ' สวัสดีครับ ' }));
+    expect(await ask('สวัสดี')).toEqual({ result: { kind: 'reply', text: 'สวัสดีครับ' }, notice: null });
+    vi.mocked(fetch).mockResolvedValueOnce(out({ kind: 'reply' }));
+    expect((await ask('สวัสดี')).notice).toBe(APP_ERROR_MESSAGES.AI_UNAVAILABLE);
+    expect(JSON.stringify(vi.mocked(console.warn).mock.calls)).toContain('bad_output');
   });
 
   it('navigate only to a real page', async () => {

@@ -1,6 +1,6 @@
 /**
  * AI Assist middleware (integration.md Add-ons 2026-11-13): browser → POST /api/ai/assist { text, page }
- * → AI SDK ToolLoopAgent (server/ai/agent.ts) on the model from AI_PROVIDER → { kind, serviceDefinitionId, route, summary }.
+ * → AI SDK ToolLoopAgent (server/ai/agent.ts) on the model from AI_PROVIDER → { kind, serviceDefinitionId, route, summary, reply }.
  * Runs in `vite dev` and `vite preview` only; keys never leave Node.
  * Never returns or logs upstream bodies, keys, the user's text or model output.
  */
@@ -18,6 +18,7 @@ const MAX_BODY_BYTES = 8 * 1024;
 const MAX_TEXT = 1000;
 const MAX_PAGE = 60;
 const UPSTREAM_TIMEOUT_MS = 9000;
+const MAX_REPLY = 1000;
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
 
@@ -90,8 +91,11 @@ export async function handleAssist(req: IncomingMessage, res: ServerResponse, en
     // fixed code only: the route text is model output and may echo the user's words
     if (parsed.data.kind === 'navigate' && !NAVIGABLE_ROUTES.has(parsed.data.route ?? ''))
       return fail(res, 502, 'upstream', { provider, steps: result.steps.length, reason: 'route_not_allowed' });
+    const reply = parsed.data.kind === 'reply' ? (parsed.data.reply ?? '').trim().slice(0, MAX_REPLY) : null;
+    if (parsed.data.kind === 'reply' && !reply)
+      return fail(res, 502, 'upstream', { provider, steps: result.steps.length, reason: 'empty_reply' });
     console.warn('[ai-assist]', 200, { provider, steps: result.steps.length });
-    send(res, 200, parsed.data);
+    send(res, 200, { ...parsed.data, reply });
   } catch (err) {
     if (signal.aborted) return fail(res, 504, 'timeout', { provider });
     return fail(res, 502, 'upstream', { provider, ...errorMeta(err) });

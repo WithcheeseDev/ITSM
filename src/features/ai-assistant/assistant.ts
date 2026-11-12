@@ -20,6 +20,7 @@ export interface AiDraft {
 export type AiResult =
   | { kind: 'draft'; draft: AiDraft }
   | { kind: 'navigate'; route: string; filters?: Record<string, string> }
+  | { kind: 'reply'; text: string }
   | { kind: 'unknown' };
 
 export interface AiAssistant {

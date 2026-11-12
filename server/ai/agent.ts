@@ -5,10 +5,11 @@ import { assistTools } from './tools';
 
 // .nullable() not .optional(): strict JSON-schema mode needs every key required
 export const assistOutputSchema = z.object({
-  kind: z.enum(['draft', 'navigate', 'unknown']),
+  kind: z.enum(['draft', 'navigate', 'reply', 'unknown']),
   serviceDefinitionId: z.string().nullable(),
   route: z.string().nullable(),
   summary: z.string().nullable(),
+  reply: z.string().nullable(),
 });
 export type AssistOutput = z.infer<typeof assistOutputSchema>;
 
@@ -20,8 +21,13 @@ export const ASSIST_INSTRUCTIONS = [
   '- Catalog names are mostly English (e.g. "Mouse", "Keyboard"): if searchServices returns nothing, search again with the English word.',
   '- If the user wants to go to a page or asks how/where to do something: call searchPages first, then kind = "navigate", route = exactly one route that searchPages returned, serviceDefinitionId = null, summary = null. Never navigate to a route searchPages did not return. Use the route exactly as returned, without filling in params (e.g. /catalog, not /catalog/cat_002).',
   '- Never navigate to /calls/new: a new call always starts from searchServices and kind = "draft".',
-  '- Otherwise (including no matching service): kind = "unknown" and every other field null.',
-  '- Never include personal data (names, emails, phone numbers) in the summary.',
+  '- Decision order: draft (concrete problem or specific service) → navigate (wants a page, or asks how/where to do something) → reply (greetings, thanks, what can you do, general IT knowledge such as "VPN คืออะไร", other general questions) → unknown (unintelligible).',
+  '- For a reply: kind = "reply", reply = the answer in the user\'s language, plain text without markdown or emoji, at most 500 characters; serviceDefinitionId, route and summary = null. In Thai, pick one polite ending and never write both forms with a slash (e.g. "ครับ/ค่ะ").',
+  '- In a reply, never claim to have created or changed a ticket, and never guess the user\'s tickets, status or data (you cannot see them): instead say in words which page to check.',
+  '- Off-topic questions not about IT: answer briefly, then mention what you can help with here.',
+  '- For every kind other than reply: reply = null.',
+  '- Otherwise (unintelligible text, or a problem with no matching service): kind = "unknown" and every other field null.',
+  '- Never include personal data (names, emails, phone numbers) in the summary or the reply.',
 ].join('\n');
 
 export function createAssistAgent(model: LanguageModel) {

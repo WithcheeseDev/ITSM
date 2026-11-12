@@ -13,7 +13,7 @@ vi.mock('../../../server/ai/model', async (importOriginal) => {
   return { ...actual, resolveModel: vi.fn(actual.resolveModel) };
 });
 
-const VALID = { kind: 'draft', serviceDefinitionId: 'sdf_002', route: null, summary: 'Mouse เสีย' } as const;
+const VALID = { kind: 'draft', serviceDefinitionId: 'sdf_002', route: null, summary: 'Mouse เสีย', reply: null } as const;
 const usage = {
   inputTokens: { total: 10, noCache: 10, cacheRead: undefined, cacheWrite: undefined },
   outputTokens: { total: 5, text: 5, reasoning: undefined },
@@ -64,7 +64,7 @@ describe('tools', () => {
 
 describe('createAssistAgent', () => {
   it('runs searchPages then navigates to a route it returned', async () => {
-    const NAV = { kind: 'navigate', serviceDefinitionId: null, route: '/calls/search', summary: null } as const;
+    const NAV = { kind: 'navigate', serviceDefinitionId: null, route: '/calls/search', summary: null, reply: null } as const;
     const model = mockModel(toolCallStep('อยากค้นหาเรื่องที่เคยแจ้ง', 'searchPages'), textStep(JSON.stringify(NAV)));
     const result = await createAssistAgent(model).generate({ prompt: 'อยากค้นหาเรื่องที่เคยแจ้ง' });
     expect(result.output).toEqual(NAV);
@@ -79,10 +79,10 @@ describe('createAssistAgent', () => {
     expect(result.steps).toHaveLength(2);
     // step 2 saw the tool result, so the tool really ran
     expect(JSON.stringify(model.doGenerateCalls[1]!.prompt)).toContain('sdf_002');
-    // strict-mode friendly schema: all 4 keys required, no extra keys
+    // strict-mode friendly schema: all 5 keys required, no extra keys
     expect(model.doGenerateCalls[0]!.responseFormat).toMatchObject({
       type: 'json',
-      schema: { required: ['kind', 'serviceDefinitionId', 'route', 'summary'], additionalProperties: false },
+      schema: { required: ['kind', 'serviceDefinitionId', 'route', 'summary', 'reply'], additionalProperties: false },
     });
   });
 });
@@ -132,9 +132,27 @@ describe('handleAssist', () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it('200 with only the 4 fields after a tool step', async () => {
+  it('200 with only the 5 fields after a tool step', async () => {
     useModel(mockModel(toolCallStep('mouse'), textStep(JSON.stringify({ ...VALID, extra: 1 }))));
     expect(await call(post({ text: ' เมาส์เสีย ', page: 'My Space' }))).toEqual({ status: 200, body: VALID });
+  });
+
+  it('reply: 200 with the text, 502 when blank, truncated to 1000, null for other kinds; reply text never logged', async () => {
+    const REPLY = { kind: 'reply', serviceDefinitionId: null, route: null, summary: null, reply: ' สวัสดีครับ REPLY-SECRET ' };
+    useModel(mockModel(textStep(JSON.stringify(REPLY))));
+    expect(await call(post({ text: 'สวัสดี', page: 'x' }))).toEqual({ status: 200, body: { ...REPLY, reply: 'สวัสดีครับ REPLY-SECRET' } });
+    useModel(mockModel(textStep(JSON.stringify({ ...REPLY, reply: '   ' }))));
+    expect(await call(post({ text: 'สวัสดี', page: 'x' }))).toEqual({ status: 502, body: { error: 'upstream' } });
+    useModel(mockModel(textStep(JSON.stringify({ ...REPLY, reply: null }))));
+    expect((await call(post({ text: 'สวัสดี', page: 'x' }))).status).toBe(502);
+    useModel(mockModel(textStep(JSON.stringify({ ...REPLY, reply: 'ก'.repeat(1500) }))));
+    const long = await call(post({ text: 'สวัสดี', page: 'x' }));
+    expect((long.body as { reply: string }).reply).toBe('ก'.repeat(1000));
+    useModel(mockModel(toolCallStep('mouse'), textStep(JSON.stringify({ ...VALID, reply: 'stray' }))));
+    expect(await call(post({ text: 'เมาส์เสีย', page: 'x' }))).toEqual({ status: 200, body: VALID });
+    const logged = JSON.stringify(vi.mocked(console.warn).mock.calls);
+    expect(logged).toContain('empty_reply');
+    expect(logged).not.toMatch(/REPLY-SECRET|สวัสดี|stray/);
   });
 
   it('502 on invalid model output', async () => {
@@ -145,11 +163,11 @@ describe('handleAssist', () => {
   });
 
   it('502 when the model navigates to a route outside the page guide, without logging the route', async () => {
-    useModel(mockModel(textStep(JSON.stringify({ kind: 'navigate', serviceDefinitionId: null, route: '/calls/new', summary: null }))));
+    useModel(mockModel(textStep(JSON.stringify({ kind: 'navigate', serviceDefinitionId: null, route: '/calls/new', summary: null, reply: null }))));
     expect(await call(post({ text: 'a', page: 'x' }))).toEqual({ status: 502, body: { error: 'upstream' } });
-    useModel(mockModel(textStep(JSON.stringify({ kind: 'navigate', serviceDefinitionId: null, route: '/x-SECRET', summary: null }))));
+    useModel(mockModel(textStep(JSON.stringify({ kind: 'navigate', serviceDefinitionId: null, route: '/x-SECRET', summary: null, reply: null }))));
     expect((await call(post({ text: 'a', page: 'x' }))).status).toBe(502);
-    useModel(mockModel(textStep(JSON.stringify({ kind: 'navigate', serviceDefinitionId: null, route: '/approvals', summary: null }))));
+    useModel(mockModel(textStep(JSON.stringify({ kind: 'navigate', serviceDefinitionId: null, route: '/approvals', summary: null, reply: null }))));
     expect((await call(post({ text: 'a', page: 'x' }))).status).toBe(200);
     const logged = JSON.stringify(vi.mocked(console.warn).mock.calls);
     expect(logged).toContain('route_not_allowed');

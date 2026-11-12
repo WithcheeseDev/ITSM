@@ -1,7 +1,7 @@
 /**
  * Azure AI Foundry adapter (integration.md Add-on 2026-11-13): POST /api/ai/assist → Vite middleware → Azure.
  * The browser sends only { text, page } (FR-114). Any HTTP error, timeout or bad shape throws → caller falls back.
- * An id / route that does not exist in this app counts as bad output → fallback (never trust the model's ids blindly).
+ * An id / route that does not exist in this app, or a reply with no text, counts as bad output → fallback (never trust the model's ids blindly).
  */
 import { z } from 'zod';
 import type { Dataset } from '@/domain/types';
@@ -11,10 +11,11 @@ import { buildDraft, STATIC_ROUTES } from './ruleBased';
 const CLIENT_TIMEOUT_MS = 10_000;
 
 const assistOutputSchema = z.object({
-  kind: z.enum(['draft', 'navigate', 'unknown']),
+  kind: z.enum(['draft', 'navigate', 'reply', 'unknown']),
   serviceDefinitionId: z.string().nullable(),
   route: z.string().nullable(),
   summary: z.string().nullable(),
+  reply: z.string().nullable(),
 });
 
 export class AzureAssistant implements AiAssistant {
@@ -41,6 +42,11 @@ export class AzureAssistant implements AiAssistant {
     if (out.kind === 'navigate') {
       if (!out.route || !STATIC_ROUTES.has(out.route)) throw new Error('bad_output');
       return { kind: 'navigate', route: out.route };
+    }
+    if (out.kind === 'reply') {
+      const reply = out.reply?.trim();
+      if (!reply) throw new Error('bad_output');
+      return { kind: 'reply', text: reply };
     }
     return { kind: 'unknown' };
   }

@@ -87,6 +87,7 @@ export function AiPanel({ me, open, onOpenChange }: { me: User; open: boolean; o
         </Button>
       );
     }
+    if (r.kind === 'reply') return <p className="whitespace-pre-line">{r.text}</p>;
     return (
       <p>
         ยังไม่เข้าใจคำขอนี้ ลองบอกอาการ เช่น "เมาส์ใช้ไม่ได้" หรือหน้าที่ต้องการ เช่น "ดูเรื่องที่ค้างอยู่"

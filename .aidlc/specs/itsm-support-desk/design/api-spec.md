@@ -157,3 +157,11 @@ resetToSeed(): void;
 
 ### 2026-11-13 — §2 upstream ผ่าน AI SDK
 - shape request / response / error ของ `/api/ai/assist` คงเดิม · upstream ไม่ได้ POST `/responses` เองแล้ว — AI SDK provider เป็นผู้เรียก (Azure: Responses API ผ่าน `@ai-sdk/azure`) · ดู integration.md Add-on "AI SDK ToolLoopAgent"
+
+### 2026-11-13 — §2 response เพิ่ม `reply`
+- ทุก response 200 มี key `reply` เพิ่ม (`string | null`) · kind ใหม่ `reply` สำหรับคำทักทาย / คำถามทั่วไป:
+```json
+{ "kind": "reply", "serviceDefinitionId": null, "route": null, "summary": null, "reply": "สวัสดี ช่วยแจ้งปัญหา IT หรือพาไปหน้าที่ต้องการได้" }
+{ "kind": "draft", "serviceDefinitionId": "sdf_002", "route": null, "summary": "Mouse ใช้งานไม่ได้", "reply": null }
+```
+- kind `reply` ที่ `reply` ว่าง → `502` · request / error code อื่นคงเดิม · ดู integration.md Add-on "คุยคำถามทั่วไป"
