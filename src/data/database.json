@@ -388,7 +388,7 @@
   ],
   "runningNumber": { "supportCall": 100009 },
   "ai": {
-    "_note": "AI Assistant via agent on Azure (contract TBD). Fallback rules below are used when the agent is unavailable [PROP].",
+    "_note": "AI Assistant via Azure AI Foundry Responses API (server/aiAssist.ts). Fallback rules below are used when the agent is unavailable [PROP].",
     "fallbackKeywordToServiceDefinition": [
       { "keywords": ["เมาส์", "mouse"], "serviceDefinitionId": "sdf_002" },
       { "keywords": ["คีย์บอร์ด", "keyboard"], "serviceDefinitionId": "sdf_001" },

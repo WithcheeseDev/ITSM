@@ -6,6 +6,7 @@
 import { dataStore } from '@/data/repositories';
 import { APP_ERROR_MESSAGES, type Impact, type Urgency } from '@/domain/types';
 import { logger } from '@/shared/logger';
+import { AzureAssistant } from './azure';
 import { RuleBasedAssistant } from './ruleBased';
 
 export interface AiDraft {
@@ -31,15 +32,29 @@ export interface AiAnswer {
   notice: string | null;
 }
 
-/** VITE_AI_MODE: "mock" (default) = rule-based · "azure" = Azure agent (task 4.6, contract TBD). */
+/**
+ * VITE_AI_MODE: "mock" (default) = rule-based · "azure" = Azure AI Foundry via the /api/ai/assist middleware.
+ * Azure failure (HTTP error, timeout, network, bad shape) → rule-based result + AI_UNAVAILABLE notice (US-034).
+ */
 export const AI_MODE: string = import.meta.env.VITE_AI_MODE ?? 'mock';
 
+/** Fixed code for the log — never the error message (could echo upstream content). */
+function fallbackReason(err: unknown): string {
+  // name check, not instanceof Error: DOMException is not an Error subclass in every runtime
+  const { name, message } = (err ?? {}) as { name?: unknown; message?: unknown };
+  if (name === 'TimeoutError' || name === 'AbortError') return 'timeout';
+  return message === 'upstream' || message === 'bad_output' ? message : 'network';
+}
+
 export async function askAssistant(text: string, pageName: string): Promise<AiAnswer> {
-  const ruleBased = new RuleBasedAssistant(dataStore.getDataset());
+  const dataset = dataStore.getDataset();
   if (AI_MODE === 'azure') {
-    // shortcut: no Azure adapter until task 4.6 (contract TBD) — fall back to rule-based with the US-034 notice
-    logger.warn('ai.fallback', { reason: 'azure_not_configured', pageName });
-    return { result: await ruleBased.suggest(text, pageName), notice: APP_ERROR_MESSAGES.AI_UNAVAILABLE };
+    try {
+      return { result: await new AzureAssistant(dataset).suggest(text, pageName), notice: null };
+    } catch (err) {
+      logger.warn('ai.fallback', { reason: fallbackReason(err), pageName });
+      return { result: await new RuleBasedAssistant(dataset).suggest(text, pageName), notice: APP_ERROR_MESSAGES.AI_UNAVAILABLE };
+    }
   }
-  return { result: await ruleBased.suggest(text, pageName), notice: null };
+  return { result: await new RuleBasedAssistant(dataset).suggest(text, pageName), notice: null };
 }

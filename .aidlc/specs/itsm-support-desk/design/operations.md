@@ -79,7 +79,7 @@ stack trace แสดงเฉพาะ dev build
 |---|---|---|---|---|
 | `VITE_AI_MODE` | No | `mock` | No | เลือก implementation ของ AI |
 | `AZURE_AI_ENDPOINT` | เมื่อ mode = azure | — | No | base URL ของ agent |
-| `AZURE_AI_PATH` | เมื่อ mode = azure | — | No | path ของ endpoint |
+| `AZURE_AI_DEPLOYMENT` | เมื่อ mode = azure | — | No | deployment name ของ Azure AI Foundry (Add-on 2026-11-13, แทน `AZURE_AI_PATH`) |
 | `AZURE_AI_KEY` | เมื่อ mode = azure | — | **Yes** | อยู่ใน `.env.local` ฝั่ง proxy เท่านั้น |
 
 ### Startup Validation

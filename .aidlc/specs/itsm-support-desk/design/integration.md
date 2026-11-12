@@ -22,7 +22,7 @@
 | Mode switch | `VITE_AI_MODE=mock` (default) ใช้ rule-based ล้วน · `azure` ใช้ Azure + fallback |
 | Output safety | response parse ด้วย Zod · route/ID ต้องมีจริงและผ่าน `can()` · draft ไม่สร้าง ticket เอง |
 
-**Proxy config (แนวทาง)** — `vite.config.ts`
+**Proxy config (แนวทาง เดิม — ถูกแทนด้วย middleware `server/aiAssist.ts` ตาม Add-on 2026-11-13)** — `vite.config.ts`
 ```ts
 server: {
   proxy: {
@@ -54,3 +54,23 @@ server: {
 - **Mocking**: Azure ใช้ `fetch` mock (Vitest `vi.fn`) จำลอง 200 / 502 / timeout / JSON ผิด shape → ต้องได้ fallback ทุกกรณี
 - **Contract**: Zod schema ของ response เป็น contract test ฝั่งแอป · contract test กับ Azure จริงทำเมื่อได้ spec `[TBD]`
 - **Smoke ด้วยมือ**: ตั้ง `VITE_AI_MODE=azure` แต่ไม่ตั้ง endpoint → ต้องได้ข้อความ fallback ไม่ crash
+
+---
+
+## Add-on
+
+### 2026-11-13 — Azure AI Foundry contract (task 4.6 ปลดล็อก)
+ผู้ใช้ให้ code template ของ Azure AI Foundry (OpenAI v1 **Responses API**) → แทน `[TBD]` ของ Azure AI Agent ข้างบน:
+
+| รายการ | ค่า |
+|---|---|
+| Azure endpoint | `AZURE_AI_ENDPOINT` = `https://<resource>.services.ai.azure.com/openai/v1` → เรียก `POST {endpoint}/responses` |
+| Model | `AZURE_AI_DEPLOYMENT` (deployment name เช่น `gpt-5-4-mini`) ส่งเป็น `model` ใน body |
+| Auth | header `api-key: <AZURE_AI_KEY>` ใส่ฝั่ง Node เท่านั้น (ไม่มี prefix `VITE_`) |
+| ตัวกลาง | **Vite plugin middleware** `server/aiAssist.ts` (แทน `server.proxy` แบบ pass-through เดิม) — ทำงานใน `vite dev` และ `vite preview` · ไม่มี backend production |
+| Prompt | server สร้าง `instructions` จาก seed `src/data/database.json`: `serviceDefinitions` (id, name, description) + route ที่อนุญาต (`ai.fallbackIntentToRoute` ที่ตรง route table) · browser ส่งแค่ `{ text, page }` (FR-114 คงเดิม) |
+| Output | `text.format` = `json_schema` (strict) ช่อง `kind`, `serviceDefinitionId`, `route`, `summary` (nullable) · อ่านข้อความจาก item `type: "message"` → content `type: "output_text"` (ไม่ใช้ `output[0]` เพราะ model ตระกูล reasoning มี item `reasoning` นำหน้า) |
+| Timeout | server 9 วินาที (`AbortSignal.timeout`) < client 10 วินาที |
+| แปลงเป็น AiResult | ฝั่ง browser (`azure.ts`): Zod parse → `serviceDefinitionId` ต้องมีใน dataset, route ต้องอยู่ใน route table · urgency/impact = ค่า default ของ template (ไม่ให้ AI เลือก) · notes = ข้อความผู้ใช้ escape แล้ว (เหมือน rule-based) |
+| Fallback | เดิม: timeout / 4xx / 5xx / parse ไม่ผ่าน / ID ไม่มีจริง → rule-based + AI_UNAVAILABLE |
+| Log | server log แค่ status / ชนิด error ไม่ log ข้อความผู้ใช้หรือ key |

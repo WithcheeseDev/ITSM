@@ -127,7 +127,7 @@ npm run dev            # http://localhost:5173
 |---|---|---|---|
 | `VITE_AI_MODE` | browser | `mock` หรือ `azure` | `mock` |
 | `AZURE_AI_ENDPOINT` | proxy only | base URL ของ Azure agent | `https://example-agent.azurewebsites.net` |
-| `AZURE_AI_PATH` | proxy only | path ของ endpoint | `/api/assist` |
+| `AZURE_AI_DEPLOYMENT` | middleware only | deployment name ของ Azure AI Foundry (Add-on 2026-11-13, แทน `AZURE_AI_PATH`) | `gpt-5-4-mini` |
 | `AZURE_AI_KEY` | proxy only | key ของ agent — **ห้ามใช้ prefix `VITE_`** | `replace-me` |
 
 ---

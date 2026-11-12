@@ -62,13 +62,13 @@ describe('askAssistant', () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  // shortcut: no Azure adapter yet (task 4.6 blocked) — azure mode always falls back; add 200 / 502 / timeout / bad JSON cases with 4.6
   it('azure mode falls back to the rules with the AI_UNAVAILABLE notice and logs no user text', async () => {
     vi.stubEnv('VITE_AI_MODE', 'azure');
+    vi.mocked(fetch).mockResolvedValue(new Response('{"error":"upstream"}', { status: 502 }));
     const { askAssistant } = await import('@/features/ai-assistant/assistant');
     const answer = await askAssistant('เมาส์เสีย ติดต่อ 0811111111', 'My Space');
     expect(answer).toEqual({ result: expect.objectContaining({ kind: 'draft' }), notice: APP_ERROR_MESSAGES.AI_UNAVAILABLE });
-    expect(fetch).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledOnce();
     const logged = JSON.stringify(vi.mocked(console.warn).mock.calls);
     expect(logged).toContain('ai.fallback');
     expect(logged).not.toContain('0811111111');

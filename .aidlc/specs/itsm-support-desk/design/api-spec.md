@@ -139,3 +139,18 @@ resetToSeed(): void;
 **Errors**: `502` (Azure error) · `504` (timeout) · `500` (proxy config ขาด) → client แสดง AI_UNAVAILABLE และใช้ rule-based
 
 **Validation ฝั่ง client**: response parse ด้วย Zod; route ต้องอยู่ใน route table และผ่าน `can()`; field ใน draft ต้องอยู่ใน enum/ID ที่มีจริง ไม่งั้นทิ้ง field นั้น
+
+---
+
+## Add-on
+
+### 2026-11-13 — §2 AI Assist ผูกกับ Azure AI Foundry
+- Request คงเดิม `{ "text": string (1–1000 ตัวอักษรหลัง trim), "page": string (≤ 60) }` · body อื่น/เกินขนาด 8KB → `400`
+- Response 200 จาก middleware (shape ที่ model ตอบ, browser แปลงเป็น `AiResult` เอง):
+```json
+{ "kind": "draft", "serviceDefinitionId": "sdf_002", "route": null, "summary": "Mouse ใช้งานไม่ได้" }
+{ "kind": "navigate", "serviceDefinitionId": null, "route": "/calls/search", "summary": null }
+{ "kind": "unknown", "serviceDefinitionId": null, "route": null, "summary": null }
+```
+- Errors: `400` request ผิด · `405` ไม่ใช่ POST · `500` env ขาด (`AZURE_AI_ENDPOINT` / `AZURE_AI_DEPLOYMENT` / `AZURE_AI_KEY`) · `502` Azure ตอบ non-2xx หรือ output ไม่ใช่ JSON ตาม schema · `504` เกิน 9 วินาที · body error = `{ "error": "<code>" }` ไม่มีรายละเอียดภายใน
+- Azure upstream: `POST {AZURE_AI_ENDPOINT}/responses`, header `api-key`, body `{ model, instructions, input: text, text: { format: { type: "json_schema", name: "ai_assist", strict: true, schema } } }`

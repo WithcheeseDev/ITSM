@@ -587,3 +587,5 @@
 - 22:45 ลบเมนู "แจ้งเรื่องใหม่" จาก sidebar (เปิดเรื่องผ่าน Catalog) · routes.tsx · design-system §9
 - 22:50 ลบปุ่ม "แจ้งเรื่องใหม่" บน My Space, empty state ชี้ไป Service Catalog · MySpacePage.tsx · design-system §9
 - 23:05 background ของ top nav: ภาพแถบชมพู→แดงเข้ม → src/assets/header-bg.webp, .header-surface · ปุ่มผู้ใช้พื้นขาว + card-shadow · AppLayout.tsx, UserMenu.tsx, globals.css · design-system §9
+- 23:20 Task 4.6 ปลดล็อก: contract Azure AI Foundry (Responses API) จาก template ผู้ใช้ · Vite middleware server/aiAssist.ts + azure.ts · integration.md, api-spec.md §2, tasks.md (Add-on)
+- 23:45 Task 4.6 verify กับ Azure จริง (gpt-5-4-mini): draft / navigate / unknown ผ่าน, AI panel เปิดฟอร์มกรอกให้ · tasks.md ติ๊ก 4.6

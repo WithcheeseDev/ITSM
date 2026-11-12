@@ -147,7 +147,7 @@
     - **Files**: `src/features/ai-assistant/AiPanel.tsx`, `assistant.ts`, `ruleBased.ts`, `src/app/layout/AppLayout.tsx` (ปุ่มเปิดแผง)
     - **Validate**: พิมพ์ "เมาส์เสีย" → ฟอร์มที่กรอก Mouse ไว้ · "อยากอนุมัติคำขอ" ด้วยสมชาย → แจ้งไม่มีสิทธิ์
     - **Stories**: US-032, US-033, US-034
-  - [ ] 4.6 ⛔ AI Assistant: Azure adapter + proxy auth
+  - [x] 4.6 AI Assistant: Azure adapter + proxy auth
     - **Deps**: 4.5, **Azure contract** | **Ref**: design/integration.md — Azure AI Agent; design/api-spec.md §2
     - `azure.ts` เรียก `POST /api/ai/assist` (timeout 10s, Zod parse, ไม่ส่ง PII) · แปลง response ของ Azure → AiResult · fallback ไป rule-based + ข้อความ · `vite.config.ts` ใส่ header auth ตาม contract · `.env.example` อัปเดตตัวแปร
     - **Files**: `src/features/ai-assistant/azure.ts`, `vite.config.ts`, `.env.example`
@@ -155,6 +155,8 @@
     - **Blocked**: รอ endpoint / auth / request-response ของ agent บน Azure (OD-4 `[TBD]`) — ถ้ายังไม่ได้ เมื่อถึงคิวให้ข้ามและแจ้งผู้ใช้
     - **Skipped 2026-11-12**: ยังไม่มี contract → ผู้ใช้สั่ง "บันทึก ข้าม 4.6" · โหมด `azure` ใช้ rule-based + แถบแจ้งเตือนไปก่อน
     - **Stories**: US-034 (Azure path)
+    - **Unblocked 2026-11-13 (Add-on)**: ผู้ใช้ให้ template Azure AI Foundry Responses API → contract ใน design/integration.md + api-spec.md §2 (Add-on 2026-11-13) · middleware `server/aiAssist.ts` แทน proxy · env `AZURE_AI_ENDPOINT`, `AZURE_AI_DEPLOYMENT`, `AZURE_AI_KEY` (ลบ `AZURE_AI_PATH`)
+    - **Verified 2026-11-13**: ยิง Azure จริง 3 แบบ (draft sdf_002 / navigate /calls/search / unknown) ~1.2–1.5s · AI panel → "Monitor - Incident" → ฟอร์มกรอก summary ให้ ไม่มีแถบ fallback · test 234, e2e 3, build ไม่มี config ใน bundle
   - **จบ Phase 4**: verify build/dev + Flow 2 และ Flow 3 คลิกได้จริง → ติ๊ก `[x]` → **หยุดรอผู้ใช้ยืนยัน**
 
 - [x] 5. ส่วนเสริม + Test / Verify (Wave 4) — 4.6 ยัง blocked (รอ Azure contract)
