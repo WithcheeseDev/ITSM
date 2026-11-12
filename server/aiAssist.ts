@@ -8,6 +8,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Plugin } from 'vite';
 import { assistOutputSchema, createAssistAgent } from './ai/agent';
 import { resolveModel, type AiEnv } from './ai/model';
+import { NAVIGABLE_ROUTES } from './ai/pages';
 
 export { APP_STATIC_ROUTES } from './ai/tools';
 export type { AiEnv } from './ai/model';
@@ -86,6 +87,9 @@ export async function handleAssist(req: IncomingMessage, res: ServerResponse, en
     const result = await createAssistAgent(model).generate({ prompt: input.text, abortSignal: signal });
     const parsed = assistOutputSchema.safeParse(result.output);
     if (!parsed.success) return fail(res, 502, 'upstream', { provider, steps: result.steps.length });
+    // fixed code only: the route text is model output and may echo the user's words
+    if (parsed.data.kind === 'navigate' && !NAVIGABLE_ROUTES.has(parsed.data.route ?? ''))
+      return fail(res, 502, 'upstream', { provider, steps: result.steps.length, reason: 'route_not_allowed' });
     console.warn('[ai-assist]', 200, { provider, steps: result.steps.length });
     send(res, 200, parsed.data);
   } catch (err) {

@@ -1,0 +1,90 @@
+{
+  "_note": "Draft page guide for the AI Assistant (lite RAG). One entry per route in src/app/routes.tsx. Facts come from routes.tsx (path, permission), database.json rolePermissions (roles), and each page component (params, sections). aiNavigable=false: the assistant must never send the user there.",
+  "pages": [
+    {
+      "route": "/my-space",
+      "title": { "th": "My Space (หน้าหลัก)", "en": "My Space" },
+      "purpose": "ดูเรื่องที่แจ้งให้ตัวเองและเรื่องที่แจ้งแทนผู้อื่น เรียงเรื่องเร่งด่วนก่อน พร้อมสรุปเรื่องเลยกำหนด / ใกล้ครบกำหนด / รออนุมัติ และลิงก์บริการยอดนิยม",
+      "keywords": {
+        "th": ["เรื่องของฉัน", "เรื่องที่แจ้ง", "เรื่องค้าง", "ติดตาม", "สถานะ", "เลยกำหนด", "ใกล้ครบกำหนด", "แจ้งแทน", "หน้าหลัก", "หน้าแรก"],
+        "en": ["my calls", "my tickets", "status", "overdue", "home", "dashboard", "on behalf"]
+      },
+      "params": [],
+      "permission": "call:view_own",
+      "roles": ["requestor", "approver", "agent", "admin"],
+      "aiNavigable": true,
+      "examples": ["เรื่องที่ฉันแจ้งไปถึงไหนแล้ว", "ดูเรื่องที่ค้างอยู่", "มีเรื่องไหนเลยกำหนดบ้าง"]
+    },
+    {
+      "route": "/catalog",
+      "title": { "th": "Service Catalog (เลือกบริการ)", "en": "Service Catalog" },
+      "purpose": "เลือกบริการเพื่อเปิดเรื่องใหม่ เป็นทางเข้าหลักของการแจ้งเรื่อง หมวดบนสุด: Request a Service, Report Incident (แจ้งปัญหา), Request For Change (CAB), User Access เลือกหมวดแล้วกด Request this service เพื่อเปิดฟอร์มที่กรอกไว้",
+      "keywords": {
+        "th": ["บริการ", "แคตตาล็อก", "ขอใช้บริการ", "แจ้งปัญหา", "ขอสิทธิ์", "ขอเปลี่ยนแปลง", "แจ้งเรื่องใหม่", "เปิดเรื่อง"],
+        "en": ["catalog", "service", "request a service", "incident", "user access", "change request", "rfc", "new ticket"]
+      },
+      "params": [
+        { "name": ":categoryId", "in": "path", "pattern": "/catalog/:categoryId", "description": "เปิดหมวดย่อยโดยตรง ค่าเป็น id ของ serviceCategories ใน database.json (เช่น cat_002 = Report Incident)" }
+      ],
+      "permission": "catalog:view",
+      "roles": ["requestor", "approver", "agent", "admin"],
+      "aiNavigable": true,
+      "examples": ["อยากขอใช้บริการ", "มีบริการอะไรบ้าง", "จะแจ้งปัญหาต้องไปตรงไหน"]
+    },
+    {
+      "route": "/calls/new",
+      "title": { "th": "แจ้งเรื่องใหม่ (ฟอร์ม)", "en": "Add Support Call" },
+      "purpose": "ฟอร์มแจ้งเรื่อง: Requested for, Contact, Priority & Template, CI, Details, Attachments ผู้ใช้ต้องกด OK เอง ระบบไม่สร้างเรื่องให้ เปิดเรื่องใหม่ต้องเริ่มจากบริการเท่านั้น จึงควรตอบเป็น draft (มี serviceDefinitionId) แทนการพามาที่ฟอร์มเปล่า",
+      "keywords": {
+        "th": ["ฟอร์ม", "กรอกฟอร์ม", "แจ้งเรื่อง"],
+        "en": ["form", "add support call"]
+      },
+      "params": [
+        { "name": "service", "in": "query", "pattern": "/calls/new?service=:serviceDefinitionId", "description": "เปิดฟอร์มที่กรอกตามบริการไว้แล้ว ค่าเป็น id ของ serviceDefinitions (เช่น sdf_002)" }
+      ],
+      "permission": "call:create",
+      "roles": ["requestor", "approver", "agent", "admin"],
+      "aiNavigable": false,
+      "examples": ["เมาส์เสีย อยากแจ้งซ่อม (→ draft ไม่ใช่ navigate)"]
+    },
+    {
+      "route": "/calls/search",
+      "title": { "th": "ค้นหาเรื่อง", "en": "Search Support Call" },
+      "purpose": "ค้นหาเรื่องด้วยเงื่อนไข Number, Summary, ช่วงวันที่เปิด, Subject Name, Call Type, Open / Closed และ Advance Criteria (ITSR reference, Full-Text) แล้วเลือกคอลัมน์ผลลัพธ์ได้",
+      "keywords": {
+        "th": ["ค้นหา", "หาเรื่อง", "หา ticket", "เลขเรื่อง", "เรื่องเก่า", "เรื่องที่ปิดแล้ว", "ย้อนดู"],
+        "en": ["search", "find", "ticket number", "closed calls", "history", "full-text"]
+      },
+      "params": [],
+      "permission": "call:view_own",
+      "roles": ["requestor", "approver", "agent", "admin"],
+      "aiNavigable": true,
+      "examples": ["อยากค้นหาเรื่องที่เคยแจ้ง", "หาเรื่องเลข 100245", "ดูเรื่องที่ปิดไปแล้ว"]
+    },
+    {
+      "route": "/approvals",
+      "title": { "th": "อนุมัติ", "en": "Approvals" },
+      "purpose": "รายการคำขอที่รอให้ผู้ใช้อนุมัติ (Department → Head) ค่าเริ่มต้นแสดงเฉพาะที่ยังไม่ทำ (Done = No) กดอนุมัติหรือปฏิเสธได้ในแถว ปฏิเสธต้องใส่เหตุผล",
+      "keywords": {
+        "th": ["อนุมัติ", "รออนุมัติ", "คำขออนุมัติ", "ปฏิเสธ", "approve"],
+        "en": ["approval", "approve", "reject", "pending approval"]
+      },
+      "params": [],
+      "permission": "approval:view_assigned",
+      "roles": ["approver"],
+      "aiNavigable": true,
+      "examples": ["มีเรื่องรออนุมัติไหม", "ไปหน้าอนุมัติ"]
+    },
+    {
+      "route": "/login",
+      "title": { "th": "เข้าสู่ระบบ", "en": "Login" },
+      "purpose": "เลือกผู้ใช้ตัวอย่างเพื่อเข้าระบบ (mock login) ผู้ใช้ที่คุยกับ AI อยู่ในระบบแล้ว",
+      "keywords": { "th": ["เข้าสู่ระบบ", "ล็อกอิน"], "en": ["login", "sign in"] },
+      "params": [],
+      "permission": null,
+      "roles": [],
+      "aiNavigable": false,
+      "examples": []
+    }
+  ]
+}

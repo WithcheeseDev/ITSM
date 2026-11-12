@@ -3,8 +3,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { MockLanguageModelV4 } from 'ai/test';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAssistAgent } from '../../../server/ai/agent';
-import { ConfigMissingError, resolveModel, type AiEnv } from '../../../server/ai/model';
-import { ALLOWED_ROUTES, APP_STATIC_ROUTES, findServices } from '../../../server/ai/tools';
+import { ConfigMissingError, resolveModel, stallRetryFetch, type AiEnv } from '../../../server/ai/model';
+import { findServices } from '../../../server/ai/tools';
 import { handleAssist } from '../../../server/aiAssist';
 
 // Partial mock: the real resolveModel runs unless a test overrides one call; ConfigMissingError stays the same class
@@ -18,8 +18,8 @@ const usage = {
   inputTokens: { total: 10, noCache: 10, cacheRead: undefined, cacheWrite: undefined },
   outputTokens: { total: 5, text: 5, reasoning: undefined },
 };
-const toolCallStep = (query: string) => ({
-  content: [{ type: 'tool-call' as const, toolCallId: 'c1', toolName: 'searchServices', input: JSON.stringify({ query }) }],
+const toolCallStep = (query: string, toolName = 'searchServices') => ({
+  content: [{ type: 'tool-call' as const, toolCallId: 'c1', toolName, input: JSON.stringify({ query }) }],
   finishReason: { unified: 'tool-calls' as const, raw: undefined },
   usage,
   warnings: [],
@@ -60,15 +60,18 @@ describe('tools', () => {
     expect(findServices('zzqx-nothing')).toEqual([]);
     expect(findServices('เมาส์').map((s) => s.id)).toContain('sdf_002'); // Thai via fallback keywords
   });
-
-  it('listRoutes only returns real static routes', () => {
-    expect(ALLOWED_ROUTES.length).toBeGreaterThan(0);
-    for (const r of ALLOWED_ROUTES) expect(APP_STATIC_ROUTES).toContain(r.route);
-    expect(ALLOWED_ROUTES.map((r) => r.route)).not.toContain('/answers');
-  });
 });
 
 describe('createAssistAgent', () => {
+  it('runs searchPages then navigates to a route it returned', async () => {
+    const NAV = { kind: 'navigate', serviceDefinitionId: null, route: '/calls/search', summary: null } as const;
+    const model = mockModel(toolCallStep('อยากค้นหาเรื่องที่เคยแจ้ง', 'searchPages'), textStep(JSON.stringify(NAV)));
+    const result = await createAssistAgent(model).generate({ prompt: 'อยากค้นหาเรื่องที่เคยแจ้ง' });
+    expect(result.output).toEqual(NAV);
+    expect(JSON.stringify(model.doGenerateCalls[1]!.prompt)).toContain('/calls/search');
+    expect(JSON.stringify(model.doGenerateCalls[0]!.prompt)).not.toContain('/approvals'); // no inline route list
+  });
+
   it('runs searchServices then returns the structured output in 2 steps', async () => {
     const model = mockModel(toolCallStep('mouse'), textStep(JSON.stringify(VALID)));
     const result = await createAssistAgent(model).generate({ prompt: 'เมาส์เสีย' });
@@ -141,6 +144,18 @@ describe('handleAssist', () => {
     expect((await call(post({ text: 'a', page: 'x' }))).status).toBe(502);
   });
 
+  it('502 when the model navigates to a route outside the page guide, without logging the route', async () => {
+    useModel(mockModel(textStep(JSON.stringify({ kind: 'navigate', serviceDefinitionId: null, route: '/calls/new', summary: null }))));
+    expect(await call(post({ text: 'a', page: 'x' }))).toEqual({ status: 502, body: { error: 'upstream' } });
+    useModel(mockModel(textStep(JSON.stringify({ kind: 'navigate', serviceDefinitionId: null, route: '/x-SECRET', summary: null }))));
+    expect((await call(post({ text: 'a', page: 'x' }))).status).toBe(502);
+    useModel(mockModel(textStep(JSON.stringify({ kind: 'navigate', serviceDefinitionId: null, route: '/approvals', summary: null }))));
+    expect((await call(post({ text: 'a', page: 'x' }))).status).toBe(200);
+    const logged = JSON.stringify(vi.mocked(console.warn).mock.calls);
+    expect(logged).toContain('route_not_allowed');
+    expect(logged).not.toMatch(/x-SECRET|calls\/new/);
+  });
+
   it('504 when the timeout signal aborts the model call', async () => {
     const ctrl = new AbortController();
     vi.spyOn(AbortSignal, 'timeout').mockReturnValue(ctrl.signal);
@@ -172,5 +187,38 @@ describe('handleAssist', () => {
     const logged = JSON.stringify(vi.mocked(console.warn).mock.calls);
     expect(logged).toContain('azure');
     expect(logged).not.toMatch(/0811111111|เมาส์|k-123|secret upstream|MODEL-SECRET/);
+  });
+});
+
+describe('stallRetryFetch', () => {
+  const never = (_i: unknown, init?: RequestInit) =>
+    new Promise<Response>((_r, reject) => init?.signal?.addEventListener('abort', () => reject(init.signal?.reason)));
+
+  it('cuts a stalled request and retries once', async () => {
+    const base = vi.fn().mockImplementationOnce(never).mockResolvedValueOnce(new Response('ok'));
+    const res = await stallRetryFetch(base as unknown as typeof fetch, 20)('https://x.test');
+    expect(await res.text()).toBe('ok');
+    expect(base).toHaveBeenCalledTimes(2);
+  });
+
+  it('gives up after the second stall', async () => {
+    const base = vi.fn().mockImplementation(never);
+    await expect(stallRetryFetch(base as unknown as typeof fetch, 20)('https://x.test')).rejects.toBeTruthy();
+    expect(base).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not retry when the caller aborted', async () => {
+    const base = vi.fn().mockImplementation(never);
+    const ctrl = new AbortController();
+    const p = stallRetryFetch(base as unknown as typeof fetch, 1000)('https://x.test', { signal: ctrl.signal });
+    ctrl.abort();
+    await expect(p).rejects.toBeTruthy();
+    expect(base).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry a non-timeout error', async () => {
+    const base = vi.fn().mockRejectedValue(new TypeError('network'));
+    await expect(stallRetryFetch(base as unknown as typeof fetch, 1000)('https://x.test')).rejects.toThrow('network');
+    expect(base).toHaveBeenCalledTimes(1);
   });
 });

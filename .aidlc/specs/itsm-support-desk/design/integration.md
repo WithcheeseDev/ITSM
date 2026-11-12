@@ -89,3 +89,11 @@ server: {
 | Env | `AI_PROVIDER`, `AI_MODEL`, `AZURE_AI_ENDPOINT`, `AZURE_AI_KEY`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` · ลบ `AZURE_AI_DEPLOYMENT` (แทนด้วย `AI_MODEL`) |
 | Contract ฝั่ง browser | ไม่เปลี่ยน (api-spec §2 Add-on 2026-11-13) |
 | ความเร็ว | loop 2 step (tool + คำตอบ) ราว 2.5–3 วินาที ยังต่ำกว่า timeout 9 วินาที |
+
+### 2026-11-13 — Page guide + `searchPages` (lite RAG)
+- ข้อมูลหน้า: `server/ai/pages.json` (route, title TH/EN, purpose, keywords TH/EN, params, permission, roles, `aiNavigable`, examples) · ข้อเท็จจริงมาจาก `routes.tsx`, `rolePermissions`, component ของแต่ละหน้า
+- ค้น: MiniSearch 7.2.0 (BM25 + prefix/fuzzy) index ใน memory ตอนโหลด middleware · ตัดคำด้วย `Intl.Segmenter('th', { granularity: 'word' })` (ไทยไม่เว้นวรรค) · field: title, purpose, keywords, examples (boost title/keywords)
+- Tool `searchPages({ query })` แทน `listRoutes` → คืนไม่เกิน 3 หน้า `{ route, title, purpose, params }` เฉพาะ `aiNavigable: true`
+- Output guard ฝั่ง server: `kind = navigate` ต้องมี route อยู่ในชุด `aiNavigable: true` ไม่งั้นถือว่า output ผิด → `502` → browser fallback (เดิม) · instructions ไม่ inline รายการ route แล้ว ให้เรียก `searchPages`
+- สิทธิ์ตาม role ยังตรวจที่ browser (`can()` ใน AiPanel, US-033) · contract `{ text, page }` ไม่เปลี่ยน (ไม่ส่ง role / user id, FR-114)
+- **อัปเดต (วันเดียวกัน, verify กับ Azure จริง)**: บาง request ค้างราว 7.5 วินาที (ปกติ 0.6–0.8 วินาที) ทำให้ timeout 9 วินาทีของทั้ง loop หมด → `stallRetryFetch` ใน `server/ai/model.ts` ตัด request ที่เกิน 3.5 วินาทีแล้วยิงใหม่ 1 ครั้ง (ใช้กับทุก provider, ไม่ retry เมื่อผู้เรียก abort หรือ error อื่น) · instructions แยก "ถามว่ามีบริการอะไร / ดู catalog" เป็น navigate ไม่ใช่ draft · route ใช้ตามที่ `searchPages` คืน ไม่เติม param

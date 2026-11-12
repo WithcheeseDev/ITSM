@@ -13,6 +13,26 @@ export interface AiEnv {
   AWS_SECRET_ACCESS_KEY?: string;
 }
 
+const REQUEST_TIMEOUT_MS = 3500;
+
+/**
+ * fetch with a per-request cap: a request that stalls (seen: one call ~7.5s while others take ~0.7s) is cut at 3.5s and
+ * sent once more, so one slow request does not spend the whole 9s budget. The caller's abort still wins.
+ */
+export function stallRetryFetch(base: typeof fetch = fetch, timeoutMs = REQUEST_TIMEOUT_MS): typeof fetch {
+  return async (input, init) => {
+    for (let attempt = 0; ; attempt++) {
+      const cap = AbortSignal.timeout(timeoutMs);
+      const signal = init?.signal ? AbortSignal.any([init.signal, cap]) : cap;
+      try {
+        return await base(input, { ...init, signal });
+      } catch (err) {
+        if (attempt > 0 || init?.signal?.aborted || !cap.aborted) throw err;
+      }
+    }
+  };
+}
+
 export class ConfigMissingError extends Error {
   override name = 'ConfigMissingError';
 }
@@ -25,12 +45,12 @@ export function resolveModel(env: AiEnv): LanguageModel {
     const { AZURE_AI_ENDPOINT: endpoint, AZURE_AI_KEY: apiKey } = env;
     if (!endpoint || !apiKey) throw new ConfigMissingError('azure');
     // baseURL ending in /openai/v1 on *.services.ai.azure.com is used as-is → POST {endpoint}/responses, no api-version
-    return createAzure({ baseURL: endpoint.replace(/\/+$/, ''), apiKey }).responses(model);
+    return createAzure({ baseURL: endpoint.replace(/\/+$/, ''), apiKey, fetch: stallRetryFetch() }).responses(model);
   }
   if (provider === 'bedrock') {
     const { AWS_REGION: region, AWS_ACCESS_KEY_ID: accessKeyId, AWS_SECRET_ACCESS_KEY: secretAccessKey } = env;
     if (!region || !accessKeyId || !secretAccessKey) throw new ConfigMissingError('bedrock');
-    return createAmazonBedrock({ region, accessKeyId, secretAccessKey })(model);
+    return createAmazonBedrock({ region, accessKeyId, secretAccessKey, fetch: stallRetryFetch() })(model);
   }
   throw new ConfigMissingError('AI_PROVIDER');
 }

@@ -2,6 +2,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import seed from '../../src/data/database.json';
+import { searchPages } from './pages';
 
 // shortcut: static (non-param) paths of ROUTES in src/app/routes.tsx — that file imports lucide-react, so it is not
 // loaded into the Vite config; keep this list in sync (tests/unit/ai/azure.test.ts asserts it).
@@ -34,19 +35,15 @@ export function findServices(query: string): ServiceHit[] {
     .map(({ s }) => ({ id: s.id, name: s.name, description: s.description }));
 }
 
-export const ALLOWED_ROUTES: readonly { route: string; hints: readonly string[] }[] = seed.ai.fallbackIntentToRoute
-  .filter((r) => APP_STATIC_ROUTES.includes(r.route))
-  .map((r) => ({ route: r.route, hints: r.keywords }));
-
 export const assistTools = {
   searchServices: tool({
     description: 'Search the service catalog. Returns up to 10 services { id, name, description }. Use short keywords (Thai or English).',
     inputSchema: z.object({ query: z.string().min(1).max(100) }),
     execute: async ({ query }) => findServices(query),
   }),
-  listRoutes: tool({
-    description: 'List the pages the user may be sent to, with keyword hints.',
-    inputSchema: z.object({}),
-    execute: async () => ALLOWED_ROUTES,
+  searchPages: tool({
+    description: "Find which page of the portal answers the user's need (where to go / how to do something). Returns up to 3 pages { route, title, purpose, params }. Pass the user's words (Thai or English).",
+    inputSchema: z.object({ query: z.string().min(1).max(100) }),
+    execute: async ({ query }) => searchPages(query),
   }),
 };

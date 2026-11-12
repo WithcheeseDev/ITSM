@@ -593,3 +593,5 @@
 - 00:10 AI SDK ToolLoopAgent + model adapter (azure / bedrock) แทน fetch ใน middleware · contract browser เดิม · integration.md, api-spec.md §2, design.md (Add-on)
 - 00:40 verify ToolLoopAgent กับ Azure จริง: draft (tool loop 2 step ~1.7–2.8s) / navigate / unknown ผ่าน · 1 ครั้งเกิน 9s → 504 แล้ว browser fallback · searchServices ค้น keyword ไทยจาก fallback rules · test 238, e2e 3, bundle ไม่มี server deps
 - 00:55 AI drawer: header เว้นขวาให้ปุ่มปิด (hover ไม่ทับข้อความ) · AiPanel.tsx · design-system §9
+- 01:10 Page guide server/ai/pages.json + tool searchPages (MiniSearch + Intl.Segmenter) แทน listRoutes · integration.md Add-on
+- 01:40 verify searchPages กับ Azure จริง: 15/17 ครั้งถูก (navigate /calls/search, /approvals, /my-space, /catalog · draft sdf_002, sdf_057) · 2 ครั้ง 502 หลังค้างซ้ำ 2 รอบ → browser fallback · เพิ่ม stallRetryFetch (3.5s ต่อ request, retry 1) · กฎ "ดู catalog" = navigate
