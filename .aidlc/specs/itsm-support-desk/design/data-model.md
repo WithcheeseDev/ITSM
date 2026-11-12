@@ -78,7 +78,7 @@ Shape ของ dataset = top-level keys ของ `database.json`:
 
 ### Catalog
 - **ServiceCategory**: `id, parentId (self FK | null), name, description, icon (ชื่อ Lucide), slaNote | null, slaStartsAfterApproval: boolean`
-- **ServiceDefinition**: `id, categoryId, name, description, requestType, templateId, serviceId`
+- **ServiceDefinition**: `id, categoryId, name, description, requestType, templateId, serviceId, featured?` (`featured` = แสดงในแถบบริการยอดนิยมของ My Space, Add-on 2026-11-13)
 - **Template**: `id, name, callType, classification, parentCategory, category, subCategory, defaultQueueId, defaultUrgency, defaultImpact, requiresApproval: ApprovalType[]`
 
 ### People & Org
@@ -147,3 +147,7 @@ Product 1──* Item ; Product/Item/Service 1──* SupportCall
 - **Attachment** (ผู้ใช้เลือก "แปลงตอนโหลด") — `database.json` ใช้ `{ id, fileName, sizeKb }` (call_002, call_008) · model คง `{ name, size, type }` · `normalizeAttachments()` ใน `src/data/seed.ts` แปลงตอนโหลด: `fileName → name`, `sizeKb × 1024 → size` (bytes), `type` เดาจากนามสกุล (ไม่รู้จัก → `application/octet-stream`) · ไม่แก้ `database.json`
 - **Activity** — `callId` และ `priority` เป็น `null` ได้ (seed `act_003` Change Freeze Window ไม่ผูกกับ call)
 - **SupportCall** — คง field วันที่ของ RFC (`scheduledDate`, `implementationStart/EndDate`, `systemDownStart/EndDate`, `cabMeetingStart/EndDate`) เป็น optional เพื่อไม่ให้ Zod ตัดทิ้ง
+
+## Add-on
+
+- **2026-11-13 (บริการของ Request a Service)** — `schemaVersion` 1 → 2 · migrate ตอนโหลด: dataset ที่ `schemaVersion` < 2 แทนที่ข้อมูลอ้างอิงที่แอปแก้ไม่ได้ (`serviceCategories`, `serviceDefinitions`, `templates`, `services`, `queues`, `groups`, `users`) ด้วยค่าจาก seed · ข้อมูลที่ผู้ใช้สร้าง (calls, history, approvals, activities, runningNumber) คงเดิม · เพิ่ม queue/group สมมติ Cloud & Infrastructure, IT Security, Office Administration และผูกกับ agent ตัวอย่าง

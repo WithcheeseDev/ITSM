@@ -47,6 +47,30 @@ export function saveDataset(storage: Storage, dataset: Dataset): Result<void> {
   }
 }
 
+/**
+ * data-model Add-on 2026-11-13: stored data older than SCHEMA_VERSION takes the seed's reference data;
+ * calls, history, approvals, activities and the running number stay as the user left them.
+ */
+export function upgradeReferenceData(storage: Storage, dataset: Dataset): Dataset {
+  const seed = seedDataset();
+  if (dataset.schemaVersion >= seed.schemaVersion) return dataset;
+  // reference data the app never edits (no admin pages)
+  const upgraded: Dataset = {
+    ...dataset,
+    schemaVersion: seed.schemaVersion,
+    serviceCategories: seed.serviceCategories,
+    serviceDefinitions: seed.serviceDefinitions,
+    templates: seed.templates,
+    services: seed.services,
+    queues: seed.queues,
+    groups: seed.groups,
+    users: seed.users,
+  };
+  saveDataset(storage, upgraded);
+  logger.info('storage.upgraded', { schemaVersion: upgraded.schemaVersion });
+  return upgraded;
+}
+
 export function loadDataset(storage: Storage): LoadOutcome {
   let text: string | null;
   try {
@@ -70,7 +94,7 @@ export function loadDataset(storage: Storage): LoadOutcome {
     raw = null;
   }
   const dataset = parseDataset(raw);
-  if (dataset) return { dataset, warning: null };
+  if (dataset) return { dataset: upgradeReferenceData(storage, dataset), warning: null };
 
   logger.error('storage.corruptReset', { code: 'STORAGE_CORRUPT' });
   const seed = seedDataset();

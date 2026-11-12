@@ -180,6 +180,8 @@ export interface ServiceDefinition {
   requestType: string;
   templateId: string;
   serviceId: string | null;
+  /** shown in My Space "บริการยอดนิยม" (US-009 Add-on 2026-11-13) */
+  featured?: boolean;
 }
 
 export interface Template {

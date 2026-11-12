@@ -3,12 +3,13 @@
  * Named imports only — never `import * as icons` (keeps the bundle small, design C6).
  */
 import {
-  AlertTriangle, AppWindow, Building2, ClipboardList, Folder, GitPullRequest, Laptop, Printer, Server, ShieldCheck,
-  UserCog, Wifi, type LucideIcon,
+  Activity, AlertTriangle, AppWindow, Building2, ClipboardList, Cloud, CloudCog, Database, Folder, GitBranch, GitPullRequest,
+  Laptop, Network, Package, Printer, Rocket, Server, ShieldAlert, ShieldCheck, UserCog, Wifi, type LucideIcon,
 } from 'lucide-react';
 
 const ICONS: Readonly<Record<string, LucideIcon>> = {
-  AlertTriangle, AppWindow, Building2, ClipboardList, Folder, GitPullRequest, Laptop, Printer, Server, ShieldCheck, UserCog, Wifi,
+  Activity, AlertTriangle, AppWindow, Building2, ClipboardList, Cloud, CloudCog, Database, Folder, GitBranch, GitPullRequest,
+  Laptop, Network, Package, Printer, Rocket, Server, ShieldAlert, ShieldCheck, UserCog, Wifi,
 };
 
 export const DEFAULT_ICON: LucideIcon = Folder;

@@ -3,8 +3,9 @@ import {
   ACTIVITY_STATUSES, ACTIVITY_TYPES, APPROVAL_DECISIONS, APPROVAL_TYPES, CALL_TYPES, CLASSIFICATIONS, CLOSED_STATUSES,
   CLOSURE_CATEGORIES, FEEDBACK_CATEGORIES, IMPACT_RFC, IMPACT_STANDARD, ROLES, STATUS_BY_CALL_TYPE, URGENCY_RFC, URGENCY_STANDARD,
 } from '@/domain/types';
-import { deriveResolvedAt } from '@/data/seed';
+import { deriveResolvedAt, SCHEMA_VERSION } from '@/data/seed';
 import { loadDataset, saveDataset, seedDataset, STORAGE_KEY } from '@/data/storage';
+import { resolveIcon } from '@/shared/icons';
 
 const quiet = () => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -12,11 +13,27 @@ const quiet = () => {
 };
 
 describe('seed', () => {
-  it('bundled database.json passes the schema and gets schemaVersion 1', () => {
+  it('bundled database.json passes the schema and gets the current schemaVersion', () => {
     const d = seedDataset();
-    expect(d.schemaVersion).toBe(1);
+    expect(d.schemaVersion).toBe(SCHEMA_VERSION);
     expect(d.supportCalls).toHaveLength(9);
     expect(d.runningNumber.supportCall).toBe(100009);
+  });
+
+  it('every catalog reference resolves and every category icon is allow-listed', () => {
+    const d = seedDataset();
+    const ids = (list: { id: string }[]) => new Set(list.map((x) => x.id));
+    const cats = ids(d.serviceCategories);
+    const tpls = ids(d.templates);
+    const queues = ids(d.queues);
+    const services = ids(d.services);
+    for (const s of d.serviceDefinitions) {
+      expect(cats.has(s.categoryId), s.id).toBe(true);
+      expect(tpls.has(s.templateId), s.id).toBe(true);
+      if (s.serviceId) expect(services.has(s.serviceId), s.id).toBe(true);
+    }
+    for (const t of d.templates) if (t.defaultQueueId) expect(queues.has(t.defaultQueueId), t.id).toBe(true);
+    for (const c of d.serviceCategories) expect(resolveIcon(c.icon).known, c.id).toBe(true);
   });
 
   it('keeps RFC planning dates (no silent strip)', () => {
@@ -66,7 +83,7 @@ describe('loadDataset', () => {
     const { dataset, warning } = loadDataset(localStorage);
     expect(warning).toBeNull();
     expect(dataset.users).toHaveLength(8);
-    expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null').schemaVersion).toBe(1);
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null').schemaVersion).toBe(SCHEMA_VERSION);
   });
 
   it('valid stored data is returned as is', () => {
@@ -99,6 +116,25 @@ describe('loadDataset', () => {
     const { dataset, warning } = loadDataset(localStorage);
     expect(warning).toBeNull();
     expect(dataset.supportCalls.find((c) => c.id === 'call_009')?.resolvedAt).toBe('2026-11-08T11:00:00+07:00');
+  });
+
+  it('schemaVersion 1 data gets the seed catalog but keeps the user\'s calls (data-model Add-on 2026-11-13)', () => {
+    const d = seedDataset();
+    d.schemaVersion = 1;
+    d.serviceCategories = d.serviceCategories.filter((c) => !c.id.startsWith('cat_1'));
+    d.serviceDefinitions = d.serviceDefinitions.filter((s) => s.id <= 'sdf_011');
+    d.runningNumber.supportCall = 100050;
+    d.supportCalls[0]!.summary = 'แก้โดยผู้ใช้';
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+
+    const { dataset, warning } = loadDataset(localStorage);
+    expect(warning).toBeNull();
+    expect(dataset.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(dataset.serviceCategories.filter((c) => c.parentId === 'cat_001')).toHaveLength(14);
+    expect(dataset.serviceDefinitions.some((s) => s.featured)).toBe(true);
+    expect(dataset.runningNumber.supportCall).toBe(100050);
+    expect(dataset.supportCalls[0]!.summary).toBe('แก้โดยผู้ใช้');
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null').schemaVersion).toBe(SCHEMA_VERSION);
   });
 });
 

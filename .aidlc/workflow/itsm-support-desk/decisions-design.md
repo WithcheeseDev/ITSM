@@ -273,3 +273,8 @@
 - **ไม่ทำ (P3)**: เปลี่ยน title "Welcome Back" / "(Count: n)" — เป็น AC ของ US-009 · CTA ซ้ำใน empty state — AC ของ US-009 กำหนดไว้
 - **Sync**: requirements.md US-006 / US-009 + Add-on · design/correctness.md P4 · design-system.md §7, §9
 
+### Add-on 2026-11-13 — บริการของ Request a Service
+- **ที่มา**: ผู้ใช้ขอนำเมนูย่อยของ Request a Service จากระบบเดิมเข้า app · เลือก: ทั้ง Catalog และทางลัดบน My Space · หมวดละ 3–5 บริการ · ทางลัด = บริการยอดนิยมที่ตั้งไว้
+- **Decision**: (1) 12 หมวดย่อยใหม่ + บริการเพิ่มใน 2 หมวดเดิม (ชื่อทั่วไป ไม่มีชื่อระบบภายใน) (2) template Service Requests ต่อทีม + queue/group สมมติ 3 ชุด (3) `featured?: boolean` บน ServiceDefinition (4) `SCHEMA_VERSION` 2 + migrate ข้อมูลอ้างอิงจาก seed ตอนโหลด (5) แถบบริการยอดนิยมบน My Space
+- **ไม่ทำ**: SLA ตามหมายเหตุของหมวด (ยังใช้ priority) · หมวดระดับบนอื่นของระบบเดิม
+- **Sync**: requirements.md Add-on · design/data-model.md · design-system.md §7, §9

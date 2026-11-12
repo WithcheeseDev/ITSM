@@ -1,7 +1,8 @@
 import type { CallHistory, SupportCall } from '@/domain/types';
 import rawSeed from './database.json';
 
-export const SCHEMA_VERSION = 1;
+/** 2 = Request a Service catalog (Add-on 2026-11-13); older stored data gets reference data from the seed on load */
+export const SCHEMA_VERSION = 2;
 
 /** Latest `→ Resolved` history entry of a call, or null (data-model: resolvedAt derived when missing). */
 export function deriveResolvedAt(callId: string, history: readonly CallHistory[]): string | null {

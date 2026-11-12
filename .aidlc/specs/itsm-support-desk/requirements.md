@@ -512,4 +512,8 @@
   - US-006: `Resolved` หยุดนับ SLA — เดิมเรื่องที่แก้แล้วแต่ยังรอปิด 7 วันขึ้น "เลยกำหนด" สีแดง ทั้งที่ IT ทำเสร็จแล้ว · ไม่เพิ่ม `Resolved` เข้า `closedStatuses` เพราะสถานะนั้นยัง Close / Re-open / ค้น "Open" ได้ — แก้เฉพาะการคำนวณ Time Left
   - US-009: default columns 8 → 5 (FR-014 `[PROP]`) เพราะที่จอ 1280 ตาราง 8 คอลัมน์กว้าง 1215px ในการ์ด ~830px ทำให้ Time Left ต้องเลื่อนหา · ผู้ใช้ที่เคยเลือกคอลัมน์ไว้ยังได้ค่าเดิม (localStorage) · ค่า default เดียวกันใช้กับ Search
   - US-009: เรียงตามความเร่งด่วน + แถบสรุป + ลิงก์งานของ approver / agent (My Space ของสองกลุ่มนี้เดิมว่าง 2 การ์ด)
-
+- **2026-11-13 (change request: บริการของ Request a Service)**
+  - FR-020–022: หมวด Request a Service มีหมวดย่อย 14 หมวดตามระบบเดิม (Application / System, Cloud Platform for AWS / AZURE / Monitoring, Hardware / Notebook / PC, IT Security Advisory, IT Security Operation, Network / WiFi / IP Phone, Network Security Operation, Office Administration, Operations Deployment, Software Internal Use, Source Code Control and Service Catalog, System and DB Operation) · หมวดละ 3–5 บริการ (ผู้ใช้เลือก) ใช้ชื่อบริการทั่วไป ตัดชื่อระบบภายในขององค์กรออก · ข้อมูลยังเป็นตัวอย่างสมมติ
+  - FR-024: `slaNote` ตามระบบเดิม (เช่น "SLA: 1 เดือนหลังหัวหน้าอนุมัติ") เป็นข้อความแสดงผล — due date ยังคิดจาก priority ตาม BR-04 · หมวดที่ SLA เริ่มหลังอนุมัติ → `slaStartsAfterApproval = true`
+  - "Request Type: RFC - Service Request" ของระบบเดิม → call type `Service Requests`
+  - US-009: My Space แสดงแถบ "บริการยอดนิยม" = บริการที่ข้อมูลตั้ง `featured: true` (6 รายการ) กดแล้วเปิดฟอร์มแบบเดียวกับ "Request this service" (US-012) · ไม่แสดงถ้าผู้ใช้ไม่มีสิทธิ์ `call:create`

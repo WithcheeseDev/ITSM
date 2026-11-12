@@ -25,6 +25,15 @@ describe('MySpacePage', () => {
     expect(within(card('Calls You Opened On Behalf')).getByText(/Count: 1/)).toBeTruthy();
   });
 
+  it('links the featured services to the pre-filled form (US-009 Add-on, Request a Service)', () => {
+    resetApp('usr_001');
+    renderAt('/my-space', '/my-space', <MySpacePage />);
+    const featured = screen.getByRole('heading', { name: 'บริการยอดนิยม' }).closest('section') as HTMLElement;
+    const links = within(featured).getAllByRole('link');
+    expect(links).toHaveLength(6);
+    expect(within(featured).getByRole('link', { name: 'ขอบริการ: ขอใช้งาน WiFi' }).getAttribute('href')).toBe('/calls/new?service=sdf_039');
+  });
+
   describe('urgency (US-009 Add-on)', () => {
     afterEach(() => vi.useRealTimers());
     // 2026-11-12 20:00: call_001 P4 has 13h15m of 72h left (< 25%), call_002 is overdue, call_009 is Resolved past due

@@ -5,7 +5,7 @@ import { dataStore } from '@/data/repositories';
 import { can } from '@/domain/access';
 import { timeLeft, type TimeLeftKind } from '@/domain/sla';
 import { isClosed } from '@/domain/stateMachine';
-import type { SupportCall, User } from '@/domain/types';
+import type { ServiceDefinition, SupportCall, User } from '@/domain/types';
 import { useSession } from '@/features/auth/sessionStore';
 import { DEFAULT_APPROVAL_CRITERIA, listMyApprovals } from '@/features/approvals/approvalService';
 import { listVisibleCalls } from '@/features/calls/callService';
@@ -15,6 +15,7 @@ import { ColumnPicker } from '@/shared/components/ColumnPicker';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { useColumnPrefs } from '@/shared/components/useColumnPrefs';
 import { cn } from '@/lib/utils';
+import { resolveIcon } from '@/shared/icons';
 import { Button } from '@/shared/ui/button';
 
 const NEW_CALL_PATH = '/calls/new';
@@ -122,6 +123,31 @@ function AttentionSummary({ counts, open, approvals, queue }: {
   );
 }
 
+/** US-009 Add-on 2026-11-13: data-flagged popular services, one click to the pre-filled form (same target as "Request this service"). */
+function FeaturedServices({ services, iconOf }: { services: ServiceDefinition[]; iconOf: (s: ServiceDefinition) => LucideIcon }) {
+  if (services.length === 0) return null;
+  return (
+    <section aria-labelledby="featured-services" className="mt-[var(--space-4)]">
+      <h2 id="featured-services" className="text-[length:var(--fs-sm)] font-semibold text-muted-foreground">บริการยอดนิยม</h2>
+      <ul className="mt-[var(--space-2)] flex flex-wrap gap-[var(--space-2)]">
+        {services.map((s) => {
+          const Icon = iconOf(s);
+          return (
+            <li key={s.id}>
+              <Button asChild variant="outline" className="bg-card">
+                <Link to={`/calls/new?service=${encodeURIComponent(s.id)}`} aria-label={`ขอบริการ: ${s.name}`}>
+                  <Icon aria-hidden="true" className="text-primary" />
+                  {s.name}
+                </Link>
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
 /** C5 My Space — US-009 (calls logged for me), US-010 (calls I opened on behalf of others). */
 export function MySpacePage() {
   const { user } = useSession();
@@ -151,6 +177,9 @@ export function MySpacePage() {
     : can(me, 'call:view_group', perms)
       ? { label: 'เรื่องเปิดในคิวกลุ่มคุณ', count: others }
       : null;
+  const featured = can(me, 'call:create', perms) ? dataset.serviceDefinitions.filter((s) => s.featured) : [];
+  const categoryIcon = new Map(dataset.serviceCategories.map((c) => [c.id, resolveIcon(c.icon).icon]));
+  const iconOf = (s: ServiceDefinition) => categoryIcon.get(s.categoryId) ?? resolveIcon(null).icon;
 
   const newCallButton = (
     <Button asChild>
@@ -168,6 +197,7 @@ export function MySpacePage() {
         {newCallButton}
       </div>
       <AttentionSummary counts={counts} open={open} approvals={approvals} queue={queue} />
+      <FeaturedServices services={featured} iconOf={iconOf} />
 
       <div className="mt-[var(--section-gap)] flex flex-col gap-[var(--section-gap)]">
         <CallsCard

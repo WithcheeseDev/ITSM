@@ -127,6 +127,7 @@ export const serviceDefinitionSchema: z.ZodType<ServiceDefinition> = z.object({
   requestType: z.string(),
   templateId: z.string(),
   serviceId: nullableString,
+  featured: z.boolean().optional(),
 });
 
 export const templateSchema: z.ZodType<Template> = z.object({
