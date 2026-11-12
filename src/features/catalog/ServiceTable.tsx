@@ -20,7 +20,8 @@ function RequestButton({ service }: { service: ServiceDefinition }) {
 export function ServiceTable({ services, caption }: { services: readonly ServiceDefinition[]; caption: string }) {
   return (
     <>
-      <div className="hidden overflow-x-auto md:block">
+      {/* relative: be the containing block so absolute sr-only text inside cells is clipped here, not by the page */}
+      <div className="relative hidden overflow-x-auto md:block">
         <table className="w-full border-collapse text-[length:var(--fs-sm)]">
           <caption className="sr-only">{caption}</caption>
           <thead>
