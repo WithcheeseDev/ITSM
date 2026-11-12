@@ -42,7 +42,7 @@ export function UserMenu() {
     <>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="ghost" className="gap-[var(--space-2)] px-[var(--space-2)]" aria-label={`เมนูผู้ใช้: ${user.name}`}>
+          <Button variant="ghost" className="gap-[var(--space-2)] bg-card px-[var(--space-2)] shadow-[var(--card-shadow)]" aria-label={`เมนูผู้ใช้: ${user.name}`}>
             <CircleUserRound aria-hidden="true" strokeWidth={1.75} className="size-[var(--icon-md)]" />
             <span className="hidden max-w-[12rem] truncate sm:inline">{user.name}</span>
             <ChevronDown aria-hidden="true" className="size-[var(--icon-sm)] text-muted-foreground" />

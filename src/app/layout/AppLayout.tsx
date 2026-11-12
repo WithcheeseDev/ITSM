@@ -124,7 +124,7 @@ export function AppLayout() {
         {/* ≥ lg: own card, height follows the banner card beside it */}
         <header
           className={cn(
-            'sticky top-0 z-40 flex h-[var(--header-height)] shrink-0 items-center gap-[var(--space-2)] bg-[var(--content-panel-bg)] px-[max(var(--gutter),env(safe-area-inset-left))] lg:static lg:rounded-[var(--content-panel-radius)] lg:px-[var(--gutter-lg)] lg:shadow-[var(--content-panel-shadow)] lg:transition-[height] lg:duration-[var(--dur-normal)] lg:ease-[var(--ease-standard)]',
+            'sticky top-0 z-40 flex h-[var(--header-height)] shrink-0 items-center gap-[var(--space-2)] header-surface px-[max(var(--gutter),env(safe-area-inset-left))] lg:static lg:rounded-[var(--content-panel-radius)] lg:px-[var(--gutter-lg)] lg:shadow-[var(--content-panel-shadow)] lg:transition-[height] lg:duration-[var(--dur-normal)] lg:ease-[var(--ease-standard)]',
             collapsed ? 'lg:h-[var(--sidebar-rail-width)]' : 'lg:h-[calc(var(--sidebar-width)/3)]',
           )}
         >

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-import { AlertOctagon, AlertTriangle, ArrowRight, CircleCheck, ClipboardCheck, FilePlus2, Hourglass, Inbox, ListTodo, Users, type LucideIcon } from 'lucide-react';
+import { AlertOctagon, AlertTriangle, ArrowRight, CircleCheck, ClipboardCheck, Hourglass, Inbox, LayoutGrid, ListTodo, Users, type LucideIcon } from 'lucide-react';
 import { dataStore } from '@/data/repositories';
 import { can } from '@/domain/access';
 import { timeLeft, type TimeLeftKind } from '@/domain/sla';
@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 import { resolveIcon } from '@/shared/icons';
 import { Button } from '@/shared/ui/button';
 
-const NEW_CALL_PATH = '/calls/new';
+const CATALOG_PATH = '/catalog';
 const detailHref = (c: SupportCall) => `/calls/${c.id}`;
 
 /** Urgency order (US-009 Add-on): overdue → near due → ok (least time first) → awaiting approval → no due date / closed. */
@@ -181,21 +181,19 @@ export function MySpacePage() {
   const categoryIcon = new Map(dataset.serviceCategories.map((c) => [c.id, resolveIcon(c.icon).icon]));
   const iconOf = (s: ServiceDefinition) => categoryIcon.get(s.categoryId) ?? resolveIcon(null).icon;
 
-  const newCallButton = (
+  // New calls start from a service only (design-system §9): the empty state points to the catalog, not a blank form
+  const catalogButton = can(me, 'catalog:view', perms) ? (
     <Button asChild>
-      <Link to={NEW_CALL_PATH}>
-        <FilePlus2 aria-hidden="true" />
-        แจ้งเรื่องใหม่
+      <Link to={CATALOG_PATH}>
+        <LayoutGrid aria-hidden="true" />
+        ไปที่ Service Catalog
       </Link>
     </Button>
-  );
+  ) : undefined;
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-[var(--space-3)]">
-        <h1 className="text-[length:var(--fs-xl)] md:text-[length:var(--fs-2xl)]">Welcome Back : {me.name}</h1>
-        {newCallButton}
-      </div>
+      <h1 className="text-[length:var(--fs-xl)] md:text-[length:var(--fs-2xl)]">Welcome Back : {me.name}</h1>
       <AttentionSummary counts={counts} open={open} approvals={approvals} queue={queue} />
       <FeaturedServices services={featured} iconOf={iconOf} />
 
@@ -208,7 +206,7 @@ export function MySpacePage() {
           columnIds={columnIds}
           // the picker only changes the ≥ md table; the < md card list has fixed fields
           action={<div className="hidden md:block"><ColumnPicker value={columnIds} onChange={setColumnIds} /></div>}
-          empty={<EmptyState icon={Inbox} title="ยังไม่มีเรื่องที่แจ้งให้คุณ" action={newCallButton} />}
+          empty={<EmptyState icon={Inbox} title="ยังไม่มีเรื่องที่แจ้งให้คุณ" action={catalogButton} />}
         />
         <CallsCard
           id="calls-on-behalf"

@@ -153,6 +153,11 @@
   }
 }
 
+/* Header background (design-system §9): supplied pink→dark-red diagonal band, stretched to the header; white fallback while loading. */
+.header-surface {
+  background: url("../assets/header-bg.webp") center / 100% 100% no-repeat, var(--content-panel-bg);
+}
+
 /* Sidebar ribbon tab (design-system §9): supplied red faceted image; --primary shows while it loads. */
 .ribbon-tab-surface {
   background: url("../assets/ribbon-tab.webp") center / 100% 100% no-repeat, var(--primary);

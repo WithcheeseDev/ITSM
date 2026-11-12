@@ -584,3 +584,6 @@
 - 22:05 FAB compact: --fab-size 56 → 44, robot 36px · tokens.css, AppLayout.tsx · design-system §9
 - 22:20 FAB robot animation: codex-image sprite sheet 8 frame (ref = robot เดิม) → src/assets/ai-fab-robot-frames.webp 768×96, .ai-fab-robot step-end loop 3s, reduced-motion ค้าง frame 1 · ลบ ai-fab-robot.webp · AppLayout.tsx, globals.css · design-system §9
 - 22:35 FAB robot ลื่นขึ้น: เพิ่ม frame คั่น dissolve (magick -morph) → strip 11 frame, 40ms grid, ยิ้มขึ้น/ลงแบบไล่ · globals.css, ai-fab-robot-frames.webp · design-system §9
+- 22:45 ลบเมนู "แจ้งเรื่องใหม่" จาก sidebar (เปิดเรื่องผ่าน Catalog) · routes.tsx · design-system §9
+- 22:50 ลบปุ่ม "แจ้งเรื่องใหม่" บน My Space, empty state ชี้ไป Service Catalog · MySpacePage.tsx · design-system §9
+- 23:05 background ของ top nav: ภาพแถบชมพู→แดงเข้ม → src/assets/header-bg.webp, .header-surface · ปุ่มผู้ใช้พื้นขาว + card-shadow · AppLayout.tsx, UserMenu.tsx, globals.css · design-system §9

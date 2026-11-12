@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { ClipboardCheck, FilePlus2, Home, LayoutGrid, Search } from 'lucide-react';
+import { ClipboardCheck, Home, LayoutGrid, Search } from 'lucide-react';
 
 /**
  * Route table — single place where every route declares its required permission (C1, default-deny).
@@ -33,7 +33,6 @@ export interface NavItem extends AppRoute {
 export const NAV_ITEMS: readonly NavItem[] = [
   { ...ROUTES.mySpace, label: 'My Space', icon: Home },
   { ...ROUTES.catalog, label: 'Service Catalog', icon: LayoutGrid },
-  { ...ROUTES.callNew, label: 'แจ้งเรื่องใหม่', icon: FilePlus2 },
   { ...ROUTES.callSearch, label: 'ค้นหาเรื่อง', icon: Search },
   { ...ROUTES.approvals, label: 'อนุมัติ', icon: ClipboardCheck },
 ];
