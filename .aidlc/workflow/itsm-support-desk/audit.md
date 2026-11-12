@@ -521,3 +521,60 @@
 **Action**: user asked to bring each Request a Service sub-menu from the old system into the app (Catalog + My Space shortcuts; 3–5 services per sub-category; data-flagged popular services). Read the old catalog read-only via Claude in Chrome (14 sub-categories). Added 12 sub-categories + services to the 2 existing ones (60 new service definitions, generic names — internal system names dropped), 12 Service Requests templates, 3 fictional queues/groups (Cloud & Infrastructure, IT Security, Office Administration) linked to sample agents, `featured?` on ServiceDefinition (6 services), My Space "บริการยอดนิยม" strip, 9 Lucide icons in the allow-list. `SCHEMA_VERSION` 1 → 2 with `upgradeReferenceData`: stored data older than the seed takes the seed's reference collections and keeps calls / history / approvals / activities / running number. slaNote is display text; due date still follows priority (BR-04).
 **Artifacts**: requirements.md Add-on · design/data-model.md (+ Add-on) · design-system.md §7, §9 · decisions-design.md Add-on · src/data/database.json · src/data/schemas.ts · src/domain/types.ts · src/data/seed.ts · src/data/storage.ts · src/shared/icons.ts · src/features/my-space/MySpacePage.tsx · tests/unit/data/storage.test.ts (+2) · tests/unit/components/MySpacePage.test.tsx (+1)
 **Outcome**: pass — browser 1280: Request a Service shows 14 cards with SLA notes; existing localStorage data upgraded in place (featured strip appeared without a reset); /calls/new?service=sdf_057 pre-fills "Software Install - Service Request". tsc ✓, build ✓, `npm test` 214 ✓, `npm run test:e2e` 3 ✓, UI audit 45 runs clean, tokens ✓, impeccable detector 0 findings.
+
+### [2026-11-13T12:40:00Z] Change request: container ด้านขวาของ sidebar
+
+**Phase**: implementation (change request, refine-spec-first)
+**Action**: user said the content looked like it floated alone (page #FAFAFA vs white cards 1.04:1) and chose "panel เทาคู่ sidebar". ≥ lg the content column is a framed panel (inset, radius and height of the sidebar; `--surface-sunken` + 1px `--border`), header inside it, the panel scrolls itself and a route change scrolls it (and the window) back to the top. < lg the content area uses the panel colour full-bleed.
+**Artifacts**: design-system.md §3, §7, §9 · decisions-design.md Add-on · src/styles/tokens.css (`--content-panel-bg`, `--content-panel-border`, `--content-panel-radius`) · src/app/layout/AppLayout.tsx
+**Outcome**: pass — browser 1280: header pinned at the panel top while scrolling, window not scrollable, route change resets scroll to 0; card vs panel 1.13:1 (was 1.04), muted text on panel 6.54:1, foreground 15.71:1. 768 / 375 checked (mobile sticky form bar ok). tsc ✓, build ✓, `npm test` 214 ✓, `npm run test:e2e` 3 ✓, UI audit 45 runs clean, motion check 0 errors, tokens ✓, impeccable detector 0 findings.
+
+### [2026-11-13T13:00:00Z] Refinement: panel กลืนกับพื้นนอก
+
+**Phase**: implementation (follow-up of the content-panel change request)
+**Action**: user said the light grey panel blended into the parent background (#F1F1F3 vs #FAFAFA 1.05:1). Tried 3 pairs live on the page; chose shell canvas `--app-canvas` = neutral-300 (#CFCFD6) and a panel shadow (`--content-panel-shadow` = shadow-md) instead of the 1px border. `--content-panel-border` removed (added and removed in the same uncommitted change); `--background` unchanged (login page).
+**Artifacts**: design-system.md §3, §7, §9 · decisions-design.md Add-on update · src/styles/tokens.css · src/app/layout/AppLayout.tsx
+**Outcome**: pass — panel vs canvas 1.37:1 measured in the browser at 1280 (was 1.05). build ✓, `npm test` 214 ✓, `npm run test:e2e` 3 ✓, UI audit 45 runs clean, tokens ✓, impeccable detector 0 findings.
+
+### [2026-11-13T13:20:00Z] Change request: main content สีขาว
+
+**Phase**: implementation (change request, refine-spec-first)
+**Action**: user asked for a bright white main-content container instead of light grey. Chose "การ์ดขาวมีเส้นขอบบาง" so white cards stay distinct on the white panel. `--content-panel-bg` → `--card`; new `--card-border` (= `--border`); `--card-shadow` / `--card-shadow-hover` = 1px ring + the previous shadow (box-shadow ring, no layout shift, every card picks it up). Mobile sticky form bar `bg-background/95` → `bg-card/95` to match the white panel.
+**Artifacts**: design-system.md §3, §6, §7, §9 · decisions-design.md Add-on · src/styles/tokens.css · src/features/call-form/CallFormPage.tsx
+**Outcome**: pass — browser: panel vs canvas 1.55:1, muted text on panel 7.38:1; 1280 My Space + Catalog, 375 My Space checked. build ✓, `npm test` 214 ✓, `npm run test:e2e` 3 ✓, UI audit 45 runs clean, tokens ✓, impeccable detector 0 findings.
+
+### [2026-11-13T13:40:00Z] Change request: page transition
+
+**Phase**: implementation (change request, refine-spec-first)
+**Action**: user asked for an animation between pages. Only the routed content in `<main>` animates: `<Outlet />` wrapped in `<div key={pathname} className="page-enter">` (pathname only, so query-string changes such as Search filters do not replay it); `@keyframes page-enter` opacity 0.6 → 1 + translateY 8px, `--dur-normal` / `--ease-standard`, default fill-mode (starts visible so a pending animation never shows a blank page). Secondary to the sidebar indicator and plays alongside it. Reduced motion covered by the existing `--dur-*: 0ms` tokens and the global `animation-duration: 0.01ms` rule. No token added, no library / View Transitions API. Content has no `position: fixed` descendants (dialogs and sheets are portaled), so the brief transform does not move them.
+**Artifacts**: design-system.md §3, §9 · decisions-design.md Add-on · src/styles/globals.css · src/app/layout/AppLayout.tsx
+**Outcome**: pass — tsc ✓, build ✓, `npm test` 214 ✓, `npm run test:e2e` 3 ✓, tokens ✓ (no violations), impeccable detector 0 findings (`[]`). Browser check pending (orchestrator).
+**Review (orchestrator)**: headless Chromium sampled per frame on /my-space → /catalog: opacity 0.6 → 1 in ~185 ms with ease-out, never blank, ends at `transform: none`; a query-string change keeps the same wrapper (no replay). Under reduced motion the global 0.01ms rule still painted one frame at 0.6 → added `.page-enter { animation: none !important; }` inside the reduced-motion block; re-sampled min opacity 1. build ✓, e2e 3 ✓.
+
+## 2026-11-13 14:00 — Change request: favicon (Add-on)
+**Request**: ใช้รูป robot ที่ผู้ใช้ให้มาเป็น icon ของ browser tab
+**Artifacts**: design-system.md §5, §9 · public/favicon.ico (16/32/48) · public/apple-touch-icon.png (180, พื้นขาว) · index.html (`<link rel="icon">`, `<link rel="apple-touch-icon">`)
+**Outcome**: pass — ICO 3 frame square, PNG 180x180, build ✓ (dist มีทั้งสองไฟล์), dev server เสิร์ฟ 200 · orchestrator ดูภาพ 32px และ 180px แล้ว ไม่ยืด อยู่กลาง
+- 14:20 favicon follow-up: เพิ่ม PNG `favicon-32.png` / `icon-192.png` + `<link type="image/png">` ก่อน `.ico` (ชื่อใหม่ เลี่ยง favicon cache) · design-system §5 อัปเดต
+
+## 2026-11-13 14:40 — Change request: sidebar banner (Add-on)
+**Request**: ใช้ภาพ banner ที่ผู้ใช้ให้มาเป็น top section ของ sidebar
+**Artifacts**: design-system.md §7, §9 · decisions-design.md Add-on · src/assets/sidebar-banner.webp (480×160) · src/app/layout/AppLayout.tsx (`SidebarBanner` แทน wordmark ใน sidebar ≥ lg + บนสุดของ drawer < lg, SheetHeader → sr-only, `Wordmark` ตัด tone light)
+**Outcome**: pass — tsc ✓, build ✓, `npm test` 214 ✓, e2e 3 ✓, tokens ✓ · Playwright: banner 240×80 ที่ 1280, ลิงก์ชื่อ "ITSM Support Desk" 1 ตัวต่อ sidebar/drawer · orchestrator ดู screenshot 1280 / 375 แล้ว
+- 15:00 sidebar banner update: แยก banner กับเมนูเป็นการ์ดคนละใบ (≥ lg, gap 12px, drawer คงแผ่นเดียว) · AppLayout.tsx (`SidebarBanner divider`) · design-system §7, §9 · tsc ✓, test 214 ✓, e2e 3 ✓, tokens ✓ · Playwright: banner 240×80 @y12, เมนู 240×684 @y104, focus ring ขาว 2px · orchestrator ดู screenshot แล้ว
+- 15:10 ลด gap banner/เมนู 12px → 8px (`--space-2`) · AppLayout.tsx · design-system §7, §9
+- 15:30 พื้นนอกสว่างขึ้น: `--app-canvas` neutral-300 → neutral-100, `--content-panel-shadow` = ขอบ 1px `--border` + shadow-md · tokens.css · design-system §3, §7, §9 · tokens ✓, build ✓, ดูใน browser 1440 แล้ว
+
+## 2026-11-13 16:00 — Change request: navigation rail (Add-on)
+**Request**: ทำ navigation rail ให้ sidebar · ผู้ใช้เลือก icon อย่างเดียว + tooltip, ปุ่มซ้ายสุดของ header
+**Artifacts**: design-system.md §3 token map, §9 · decisions-design.md Add-on · tokens.css (`--sidebar-rail-width`) · AppLayout.tsx (state + localStorage `itsm.ui.sidebarCollapsed`, `<aside id="app-sidebar">` width transition, `SidebarBanner compact`, ปุ่ม PanelLeftClose/Open) · Sidebar.tsx (`collapsed`, label sr-only + Tooltip, className แบบ `aria-[current=page]:` เพราะ Slot ของ TooltipTrigger รับ function ไม่ได้) · src/assets/sidebar-robot.webp · tests/unit/components/AppLayoutRail.test.tsx
+**Outcome**: pass — tsc ✓, `npm test` 216 ✓, e2e 3 ✓, tokens ✓ · Playwright: aside 240 / 72, banner หุบ 72×72, indicator ตรง active link ทุกกรณี, tooltip ✓, reload ยังหุบ, reduced-motion เปลี่ยนทันที · orchestrator ดู screenshot หุบ + tooltip แล้ว
+**Known**: ตอนขยาย banner สลับเป็นภาพเต็มทันทีแล้วโตตามความกว้าง (ดันเมนูลงช่วง 200ms) · ใน rail เห็นขอบลายเรขาคณิตของ sidebar-bg.webp เป็นเส้นแนวนอนระหว่างเมนู (เป็นส่วนของภาพ)
+- 16:30 rail toggle → ribbon: ปุ่มย้ายจาก header เป็นแท็บแคปซูล 20×48 คร่อมขอบขวาของ `<aside>` กึ่งกลางแนวตั้ง (hit area 44×48, tooltip ขวา, aria เดิม) · AppLayout.tsx · design-system §9 · tsc ✓, test 216 ✓, e2e 3 ✓, tokens ✓ · Playwright: แท็บ center = ขอบขวา aside / mid-Y ทั้งสองสถานะ, ห่าง panel 2px, focus ring crimson · orchestrator ดู screenshot ขยาย + focus แล้ว · known: ring ครึ่งที่ทับ sidebar contrast ต่ำ (ครึ่งบนพื้นสว่างชัด)
+- 16:50 app background image: `.app-canvas-surface` (globals.css) ใช้ src/assets/app-bg.webp (1920×983) ที่ root ของ AppLayout และ <main> ของ LoginPage · design-system §9 · tsc ✓, build ✓, test 216 ✓, e2e 3 ✓, tokens ✓ · orchestrator ดู screenshot shell + login แล้ว
+- 17:10 ย้ายภาพพื้นจาก parent ไป main content (ผู้ใช้แก้ความต้องการ): `.content-panel-surface` (≥ lg, @media 64rem) บน content panel · shell root กลับ `--app-canvas`, Login กลับ `bg-background` · header ≥ lg ขาว 75% + backdrop-blur · globals.css, AppLayout.tsx, LoginPage.tsx · design-system §9 · tsc ✓, build ✓, test 216 ✓, e2e 3 ✓, tokens ✓ · Playwright: panel bg = ภาพที่ 1280 / none ที่ 375 · ไม่มีข้อความบนส่วนโค้งแดง (My Space, Catalog, Search, New call) · orchestrator ดู screenshot แล้ว
+- 17:20 ภาพพื้น main content จางลง: ชั้นขาว `--content-panel-image-wash` (60%) ทับภาพ · tokens.css, globals.css · design-system §3, §9
+- 17:40 ribbon tab ตาม reference ผู้ใช้: แท็บติดนอกขอบขวา 24×44 ซ้ายแบน มุมขวามน พื้น --primary chevron ขาว stroke 2.5 · aside z-10 · AppLayout.tsx · design-system §9
+- 17:55 rail compact: --sidebar-rail-width 72 → 56, เมนูหุบ px --space-1 (ปุ่ม 48 กว้าง), robot 40px · tokens.css, AppLayout.tsx, Sidebar.tsx · design-system §9
+- 18:05 ribbon tab ใช้ภาพผู้ใช้เป็นพื้น: src/assets/ribbon-tab.webp 48×88, .ribbon-tab-surface (globals.css), hover brightness 1.1 · AppLayout.tsx · design-system §9
+- 18:20 ภาพพื้น main content ยืดเต็มกรอบ panel: `.content-panel-surface` cover → `center / 100% 100%` (ผู้ใช้เลือก แทน cover ที่ตัดขอบ) · globals.css · design-system §9

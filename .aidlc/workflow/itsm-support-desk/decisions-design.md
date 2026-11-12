@@ -278,3 +278,25 @@
 - **Decision**: (1) 12 หมวดย่อยใหม่ + บริการเพิ่มใน 2 หมวดเดิม (ชื่อทั่วไป ไม่มีชื่อระบบภายใน) (2) template Service Requests ต่อทีม + queue/group สมมติ 3 ชุด (3) `featured?: boolean` บน ServiceDefinition (4) `SCHEMA_VERSION` 2 + migrate ข้อมูลอ้างอิงจาก seed ตอนโหลด (5) แถบบริการยอดนิยมบน My Space
 - **ไม่ทำ**: SLA ตามหมายเหตุของหมวด (ยังใช้ priority) · หมวดระดับบนอื่นของระบบเดิม
 - **Sync**: requirements.md Add-on · design/data-model.md · design-system.md §7, §9
+
+### Add-on 2026-11-13 — Container ด้านขวาของ sidebar
+- **ที่มา**: ผู้ใช้บอกว่าเนื้อหาดูลอยโดดๆ · เลือก "Panel เทาคู่ sidebar" จาก 3 ตัวเลือก (panel เทา / panel + พื้นนอกแดงอ่อน / แค่พื้นเข้มขึ้น)
+- **Decision**: content panel `--surface-sunken` + ขอบ `--border` 1px, inset/radius/ความสูงเท่า sidebar, header ใน panel, panel scroll ในตัว + เลื่อนกลับบนสุดเมื่อเปลี่ยนหน้า · < lg ใช้สี panel เต็มจอ
+- **Sync**: design-system.md §3, §7, §9 · src/styles/tokens.css · src/app/layout/AppLayout.tsx
+- **อัปเดต (วันเดียวกัน)**: panel กลืนกับพื้นนอก → พื้นนอก `--app-canvas` neutral-300 + panel shadow-md แทนเส้นขอบ (ลองบนหน้าจริง 3 คู่สี: #E2E2E7 + เส้นขอบ ยังจาง, #D7D7DE ชัดแต่ต้องเพิ่ม primitive, neutral-300 ชัดและใช้ primitive เดิม)
+
+### Add-on 2026-11-13 — Main content สีขาว
+- **ที่มา**: ผู้ใช้ขอให้ container ของ main content เป็นสีขาวสว่างแทนเทาอ่อน · เลือก "การ์ดขาวมีเส้นขอบบาง" (อีกทางคือเอาการ์ดออกแล้วแยก section ด้วยเส้นคั่น ซึ่งต้องแก้ทุกหน้า)
+- **Decision**: `--content-panel-bg` = `--card` · `--card-border` ใหม่ · `--card-shadow(-hover)` = ring 1px + เงาเดิม · พื้นนอก `--app-canvas` คงเดิม
+- **Sync**: design-system.md §3, §6, §7, §9 · src/styles/tokens.css
+
+### Add-on 2026-11-13 — Page transition
+- **ที่มา**: ผู้ใช้ขอ animation ระหว่างเปลี่ยนหน้า
+- **Decision**: เฉพาะเนื้อหาใน `<main>` เข้ามาด้วย opacity 0.6 → 1 + translateY 8px (`--dur-normal` / `--ease-standard`) · key = pathname · ไม่เริ่มจาก 0 และไม่ใช้ fill-mode backwards (กันหน้าว่างระหว่างรอ) · sidebar / header / panel ไม่ขยับ · เป็น motion รองของ indicator ของ sidebar · reduced-motion → ทันที · ไม่ใช้ View Transitions API / library · ไม่เพิ่ม token
+- **Sync**: design-system.md §3, §9 · src/styles/globals.css · src/app/layout/AppLayout.tsx
+
+### Add-on 2026-11-13 — Sidebar banner
+- ภาพ banner ที่ผู้ใช้ให้มาแทน wordmark บนสุดของ sidebar (≥ lg) และ drawer (< lg) · ลิงก์ไป My Space · alt "ITSM Support Desk" · header < lg คง wordmark · รายละเอียด design-system.md §9
+
+### Add-on 2026-11-13 — Navigation rail
+- ≥ lg sidebar หุบเป็น rail 72px (icon + tooltip) ผ่านปุ่มซ้ายสุดของ header · จำสถานะใน localStorage · drawer < lg ไม่เปลี่ยน · token ใหม่ `--sidebar-rail-width` · รายละเอียด design-system.md §9 (ผู้ใช้เลือก icon-only + ปุ่มใน header)

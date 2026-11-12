@@ -45,7 +45,7 @@
 |---|---|---|
 | Primitive | `--palette-*`, `--fs-*`, `--fw-*`, `--space-*`, `--radius-*`, `--shadow-*`, `--dur-*`, `--ease-*` | `--palette-indigo-600` |
 | Semantic | ชื่อตาม shadcn/ui: `--background`, `--foreground`, `--card`, `--primary(-hover/-active/-foreground/-soft)`, `--accent(-soft)`, `--muted(-foreground)`, `--border`, `--input`, `--ring`, `--success/warning/destructive/info(-soft/-soft-foreground)`, layout `--container-max`, `--form-max`, `--gutter`, `--sidebar-width`, `--header-height`, `--section-gap`, `--tap-target` | `--primary` |
-| Component | `--button-*`, `--input-*`, `--card-*`, `--table-*`, `--badge-*`, `--sidebar-*` (รวม `--sidebar-fg`, `--sidebar-overlay`, `--sidebar-ring`, `--sidebar-inset`, `--sidebar-radius`, `--sidebar-shadow`), `--status-*`, `--icon-*`, `--logo-*` | `--status-waiting-bg` |
+| Component | `--button-*`, `--input-*`, `--card-*`, `--table-*`, `--badge-*`, `--sidebar-*` (รวม `--sidebar-fg`, `--sidebar-overlay`, `--sidebar-ring`, `--sidebar-inset`, `--sidebar-radius`, `--sidebar-shadow`, `--sidebar-rail-width`), `--app-canvas`, `--content-panel-*` (bg, radius, shadow, image-wash), `--status-*`, `--icon-*`, `--logo-*` | `--status-waiting-bg` |
 
 **Tailwind v4 wiring** (`src/styles/globals.css`):
 ```css
@@ -77,8 +77,10 @@ component ใช้ utility (`bg-primary`, `text-muted-foreground`) หรือ
 - Spacing ฐาน 4px · ภายใน card 20px · ระหว่าง section 24px · ระหว่าง field 16px
 - Radius: control 8px · card 12px · badge/chip pill
 - Shadow: card `--shadow-sm` → hover `--shadow-md` · dialog/popover `--shadow-lg` · จัดกลุ่มด้วย spacing ก่อนเส้น
+- พื้นผิวหลัง login 3 ระดับ (policy §2.2): พื้นนอก `--app-canvas` (#F1F1F3, ≥ lg เท่านั้นที่เห็น) → content panel `--content-panel-bg` (ขาว) + `--content-panel-shadow` (ขอบ 1px `--border` + shadow-md) → การ์ด `--card` (ขาว) + เส้นขอบ `--card-border` 1px ผ่าน `--card-shadow` · panel กับพื้นนอก 1.13:1 แยกด้วยขอบ + เงา · ข้อความบน panel ตรงๆ ใช้ `--foreground` / `--muted-foreground` (7.38:1 บนขาว)
 - Motion: hover/press 120ms · panel/dialog 200ms · drawer 320ms · `prefers-reduced-motion` → 0ms
 - Motion เด่นจุดเดียวของ shell: indicator ของ sidebar (พื้นเข้มของ active item) เลื่อนจาก item เดิมไป item ใหม่เมื่อเปลี่ยนหน้า — `transform` + `opacity`, `--dur-normal` / `--ease-standard` · ครั้งแรก (โหลดหน้า / เปิด drawer) วางทันทีไม่เลื่อน · หน้าที่ไม่อยู่ในเมนู → จางหาย · reduced-motion → กระโดดทันที
+- Motion รองของ shell (เล่นพร้อม indicator ของ sidebar ไม่แย่งความเด่น): เปลี่ยนหน้าแล้วเฉพาะเนื้อหาใน `<main>` (สิ่งที่ `<Outlet />` render) เข้ามาด้วย opacity 0.6 → 1 + `translateY(8px)` → 0, `--dur-normal` / `--ease-standard` · sidebar / header / panel ไม่ขยับ · key = pathname (query string เปลี่ยน เช่น filter ของ Search ไม่เล่นซ้ำ) · เริ่มที่ 0.6 ไม่ใช่ 0 และไม่ใช้ fill-mode both/backwards เพื่อไม่ให้หน้าว่างระหว่างรอ animation เริ่ม · reduced-motion → ไม่เล่นเลย (`animation: none`)
 
 ## 4. Status / Priority / Time Left (ห้ามสื่อด้วยสีอย่างเดียว)
 
@@ -101,7 +103,7 @@ component ใช้ utility (`bg-primary`, `text-muted-foreground`) หรือ
 | ไอคอนใน text / ตาราง | 16px | `--icon-sm` |
 | ไอคอนปุ่ม / sidebar | 20px | `--icon-md` |
 | ไอคอนการ์ดหมวด (mobile / ≥ md) | 24 / 32px | `--icon-lg` / `--icon-xl` |
-| favicon | 32px + SVG | — |
+| favicon | `public/favicon-32.png`, `public/icon-192.png`, `public/favicon.ico` (16 / 32 / 48) + `public/apple-touch-icon.png` 180px — รูป robot ที่ผู้ใช้ให้มา (Add-on 2026-11-13) | — |
 - โลโก้ = wordmark "ITSM Support Desk" ของ product เอง (SVG, สี `--primary`) — ไม่มีโลโก้บุคคลที่สาม
 - ปุ่มที่มีแต่ icon ต้องมี `aria-label` และพื้นที่กด ≥ 44px
 
@@ -114,7 +116,7 @@ component ใช้ utility (`bg-primary`, `text-muted-foreground`) หรือ
 | Button destructive | `--card` + ขอบ/ข้อความ `--destructive` + icon `CircleX` | `--destructive-soft` | — | ring | เหมือนบน |
 | Input / Select | ขาว, ขอบ `--input` | ขอบ `--muted-foreground` | — | ring + ขอบ `--primary` | `--muted` |
 | Input error | ขอบ `--destructive` + ข้อความใต้ field (`aria-describedby`) + icon `CircleAlert` | | | | |
-| Card | `--card`, radius 12, `--shadow-sm` | `--shadow-md` (เฉพาะการ์ดที่คลิกได้) | — | ring | — |
+| Card | `--card`, radius 12, `--card-shadow` (ขอบ 1px `--card-border` + `--shadow-sm`) | `--card-shadow-hover` (เฉพาะการ์ดที่คลิกได้) | — | ring | — |
 | Table row (คลิกได้) | ขาว, สูง 44px | `--table-row-hover` | — | ring ที่ row | — |
 | Filter chip | ขอบ `--input` | `--muted` | เลือกแล้ว: `--primary-soft` + icon `Check` | ring | — |
 
@@ -124,18 +126,20 @@ component ใช้ utility (`bg-primary`, `text-muted-foreground`) หรือ
 ## 7. Page Layout Blueprint
 **Shell (ทุกหน้า หลัง login)** — ≥ lg: sidebar เป็นการ์ดลอย (Add-on 2026-11-13)
 ```
-   ╭ Sidebar 240px ─────────╮  Header 56px (พื้นเดียวกับหน้า, ไม่มีเส้น): ··· [AI Assistant] [ชื่อผู้ใช้ ▾]
-   │ [Logo] ITSM Support Desk│
-   │ ─────────               │  Main: container ≤ 1280, padding 16/32
-   │ My Space                │   Page title + action ขวา
-   │ Service Catalog         │   [section card] gap 24
-   │ แจ้งเรื่องใหม่            │   [section card]
-   │ ค้นหาเรื่อง               │
-   │ อนุมัติ (approver)        │
-   ╰─────────────────────────╯
-   ↑ inset 12px รอบด้าน · radius 12 · shadow-lg · sticky, สูง 100dvh − 24px
+   ╭ Sidebar 240px ─────────╮ ╭ Content panel (ขาว, shadow-md) ────────────────────╮
+   │ [Banner 3:1 ภาพ ITSM]   │ │ Header 56px (พื้น panel, ไม่มีเส้น): ··· [AI] [ผู้ใช้ ▾]│
+   │ ─────────               │ │ Main: container ≤ 1280, padding 16/32             │
+   │ My Space                │ │  Page title + action ขวา                          │
+   │ Service Catalog         │ │  [section card ขาว + ขอบ 1px] gap 24              │
+   │ แจ้งเรื่องใหม่            │ │  [section card ขาว + ขอบ 1px]                     │
+   │ ค้นหาเรื่อง               │ │                                                   │
+   │ อนุมัติ (approver)        │ │                                                   │
+   ╰─────────────────────────╯ ╰───────────────────────────────────────────────────╯
+   ↑ ทั้งสองแผ่นวางบนพื้น `--app-canvas` (#F1F1F3): inset 12px · radius 12 · sticky, สูง 100dvh − 24px · sidebar shadow-lg, panel shadow-md
+   sidebar ≥ lg = การ์ด 2 ใบ (banner 240×80 + เมนู flex-1) ห่างกัน 8px (`--space-2`) · แต่ละใบ radius 12 + shadow-lg
+   panel เลื่อนเนื้อหาภายในตัวเอง (header ติดบนสุดของ panel) · เปลี่ยนหน้า → เลื่อนกลับบนสุด
 ```
-< lg: header (พื้นเดียวกับหน้า) `[☰] Logo (สี brand) ··· [AI] [ผู้ใช้]` + sidebar เป็น drawer
+< lg: header + เนื้อหาบนพื้น `--content-panel-bg` เต็มจอ (ไม่มีขอบ/มุมโค้ง) `[☰] Logo (สี brand) ··· [AI] [ผู้ใช้]` + sidebar เป็น drawer
 
 sidebar แบน ทุกหน้าเป็น item ระดับบนพร้อม icon · active = `--sidebar-item-active-*` + `aria-current="page"`
 
@@ -176,3 +180,26 @@ Sidebar background: รูป `src/assets/sidebar-bg.webp` (ลายเรข�
 - **2026-11-13 (impeccable: แก้ accent ai slop ของ menu item)** — ผู้ใช้ชี้ว่าขอบซ้ายสว่าง + เส้นขอบโปร่งรอบ item เป็นท่า AI slop (accent bar บนการ์ดมุมโค้ง, craft floor ก็ refuse) → ลบทั้งคู่ · active แยกด้วยพื้นเข้มขึ้น 28% → 32% + semibold (hover 14%) · ลบ token `--sidebar-item-active-edge`, `-ring`, `-shadow` (เพิ่มและลบใน change ที่ยังไม่ commit)
 - **2026-11-13 (impeccable critique: My Space)** — critique 27/40: Time Left หลุดจอที่ 1280 (ตาราง 1215px / การ์ด ~830px), Resolved ขึ้น "เลยกำหนด", ไม่มีลำดับความสำคัญ, My Space ของ agent/approver ว่าง → default 5 คอลัมน์, เรียงตามความเร่งด่วน, แถบสรุปใต้ title (ไม่ใช่การ์ด KPI — ข้อความบรรทัดเดียว ใช้ icon + สีชุดเดียวกับ Time Left §4), ลิงก์งานตามสิทธิ์ · Time Left ของ `Resolved` แสดงแบบ closed (สีเทา) · ไม่เพิ่ม token
 - **2026-11-13 (change request: บริการของ Request a Service)** — Catalog ใช้ grid การ์ดหมวด + ตารางบริการเดิม (14 การ์ดใต้ Request a Service) · icon หมวดใหม่จาก Lucide (เพิ่มใน allow-list `src/shared/icons.ts`) · My Space เพิ่มแถบบริการยอดนิยมใต้แถบสรุป เป็นลิงก์ข้อความ + icon หมวด ไม่ใช่การ์ด (craft floor: ไม่ใช้การ์ด icon+heading ซ้ำๆ เป็นโครงหน้า) · ไม่เพิ่ม token
+- **2026-11-13 (change request: container ด้านขวาของ sidebar)** — ผู้ใช้บอกว่าเนื้อหาดูลอย (พื้น #FAFAFA กับการ์ดขาวต่างกัน 1.04:1) · เลือก panel เทาคู่ sidebar: ≥ lg คอลัมน์ขวาเป็น panel inset/radius/ความสูงเท่า sidebar, พื้น `--surface-sunken` + ขอบ `--border` 1px (ไม่มีขอบจะมองไม่เห็นเพราะ #F1F1F3 กับ #FAFAFA ใกล้กัน), header อยู่ใน panel, panel scroll ในตัว · < lg พื้นเนื้อหา = สี panel ไม่มีขอบ · เปลี่ยนหน้าแล้วเลื่อนกลับบนสุด · token ใหม่ `--content-panel-bg`, `--content-panel-border`, `--content-panel-radius`
+  - **อัปเดต (วันเดียวกัน)**: ผู้ใช้บอกว่า panel เทาอ่อนกลืนกับพื้นนอก (#F1F1F3 กับ #FAFAFA 1.05:1) → พื้นนอกของ shell เป็น `--app-canvas` = neutral-300 (#CFCFD6, 1.37:1 กับ panel) · panel ใช้เงา `--content-panel-shadow` (shadow-md) แทนเส้นขอบ · ลบ `--content-panel-border` (เพิ่มและลบใน change ที่ยังไม่ commit) · `--background` ไม่เปลี่ยน (หน้า login ยังใช้)
+- **2026-11-13 (change request: main content สีขาว)** — ผู้ใช้ขอให้ container ของเนื้อหาเป็นขาวสว่าง · `--content-panel-bg` → `--card` (ขาว) · การ์ดขาวบน panel ขาวจะหาย → ผู้ใช้เลือกการ์ดมีเส้นขอบบาง: เพิ่ม `--card-border` (= `--border`) และ `--card-shadow` / `--card-shadow-hover` เป็น ring 1px + เงาเดิม (ใช้ box-shadow ไม่ใช้ border จึงไม่ขยับ layout และทุก component ที่อ้าง token ได้ขอบพร้อมกัน) · panel ขาวกับพื้นนอก #CFCFD6 1.55:1
+- **2026-11-13 (change request: page transition)** — ผู้ใช้ขอ animation ระหว่างเปลี่ยนหน้า → ห่อ `<Outlet />` ด้วย `<div key={pathname} className="page-enter">` ใน `AppLayout.tsx` + `@keyframes page-enter` ใน `globals.css` (opacity 0.6 → 1, translateY 8px, `--dur-normal` / `--ease-standard`) · เป็น motion รองของ indicator ใน §3 · reduced-motion → `animation: none` (rule 0.01ms เดิมยังวาด frame แรกที่ 0.6) · ไม่เพิ่ม token
+- **2026-11-13 (change request: favicon)** — ผู้ใช้ให้รูป robot แดง-ขาวใส่หูฟัง (ภาพประกอบ ไม่ใช่โลโก้บุคคลที่สาม, พื้นโปร่งใส) มาใช้เป็น icon ของ browser tab → ตัดเฉพาะส่วนที่มีภาพแล้ววางกลางสี่เหลี่ยมพื้นใส · `favicon.ico` 16/32/48 + `apple-touch-icon.png` 180 (พื้นขาว เพราะ iOS ทำส่วนใสเป็นดำ) ใน `public/` · เดิมสเปกเขียน "32px + SVG" แต่ไม่มีไฟล์จริง · ไม่เพิ่ม token · wordmark ใน header/sidebar ไม่เปลี่ยน
+- **2026-11-13 (change request: banner ของ sidebar)** — ผู้ใช้ให้ภาพ banner แดง (robot + "ITSM / IT Service Management", ภาพของ product เอง ไม่ใช่โลโก้บุคคลที่สาม) ใส่ top section ของ sidebar → แทนแถว wordmark ใน sidebar (≥ lg) และวางบนสุดของ drawer (< lg) · `src/assets/sidebar-banner.webp` 480×160 (2x ของ 240×80) · เต็มความกว้างการ์ด ไม่มี padding, `aspect-ratio: 3 / 1`, `object-fit: cover`, เส้นคั่น `--sidebar-border` ใต้ banner · เป็นลิงก์ไป My Space ชื่อที่อ่านได้ = alt "ITSM Support Desk" (ข้อความในภาพเล็กเกินอ่านที่ 240px จึงไม่ใช่ข้อความหลัก) · focus ring วาดด้านใน (offset −2px) เพราะ sidebar ตัดมุมด้วย overflow · header < lg ยังใช้ wordmark สี brand · ไม่เพิ่ม token
+  - **อัปเดต (วันเดียวกัน)**: ผู้ใช้ขอแยก banner กับเมนูเป็นคนละ container → ≥ lg `<aside>` เป็นคอลัมน์โปร่ง (ไม่มีพื้น/เงา) ข้างในมีการ์ด 2 ใบ ห่างกัน `--sidebar-inset` (12px): การ์ด banner (`shrink-0`, radius `--sidebar-radius`, `--sidebar-shadow`, `overflow: hidden`, ไม่มีเส้นคั่น) + การ์ดเมนู (`.sidebar-surface` รูปพื้นแดง, `flex: 1`, scroll ในตัว, radius/เงาเดียวกัน) · การ์ด banner ใส่ `.on-brand` ให้ focus ring เป็นขาวบนภาพแดง · ความสูงรวมยังเท่า content panel · drawer < lg คงแผ่นเดียว (banner + เส้นคั่น + เมนู) เพราะ sheet ชิดขอบจอ · ไม่เพิ่ม token
+  - **อัปเดต (วันเดียวกัน)**: ผู้ใช้ขอลดช่องระหว่างการ์ด banner กับการ์ดเมนู → 12px (`--sidebar-inset`) เป็น 8px (`--space-2`) · ไม่เพิ่ม token
+- **2026-11-13 (change request: พื้นนอกสว่างขึ้น)** — ผู้ใช้ขอพื้นนอก (parent ของ sidebar / content panel) ขาวสว่าง แต่ไม่กลืนกับ panel → `--app-canvas` neutral-300 (#CFCFD6) → neutral-100 (#F1F1F3) · สีต่างกันเหลือ 1.13:1 จึงให้ `--content-panel-shadow` = ขอบ 1px `--border` (#E4E4E8) + shadow-md (ขอบคือสิ่งที่แยก ไม่ใช่สี) · ไม่ใช้ neutral-50 (#FAFAFA) เพราะใกล้ขาวจนขอบเป็นตัวแยกอย่างเดียว · ไม่เพิ่ม token
+- **2026-11-13 (change request: navigation rail)** — ผู้ใช้ขอให้ sidebar หุบได้ (Navigation Rail) · ผู้ใช้เลือก: หุบเหลือ icon อย่างเดียว + tooltip และปุ่มหุบ/ขยายอยู่ซ้ายสุดของ header ใน content panel · เฉพาะ ≥ lg (drawer < lg ไม่เปลี่ยน)
+  - กว้าง: ขยาย `--sidebar-width` 240 · หุบ `--sidebar-rail-width` 72 (token ใหม่) · เปลี่ยนความกว้างด้วย `transition: width` `--dur-normal` / `--ease-standard` · reduced-motion → ไม่เลื่อน
+  - การ์ด banner ตอนหุบ: สี่เหลี่ยม 72×72 พื้น `.sidebar-surface` + รูป robot (ชุดเดียวกับ favicon) 48px กลางการ์ด · ยังเป็นลิงก์ไป My Space ชื่อ "ITSM Support Desk"
+  - เมนูตอนหุบ: icon อยู่กลาง (สูง ≥ 44px คงเดิม) · label ยังอยู่ใน DOM เป็น `sr-only` (ชื่อลิงก์ไม่หาย) · tooltip ขวา (`side="right"`) แสดง label ตอน hover/focus เฉพาะตอนหุบ · indicator active เลื่อนตามเดิม (วัดใหม่เมื่อความกว้างเปลี่ยน)
+  - ปุ่ม: `Button` ghost icon ซ้ายสุดของ header แสดงเฉพาะ ≥ lg · icon `PanelLeftClose` (ตอนขยาย) / `PanelLeftOpen` (ตอนหุบ) · `aria-label` "ย่อเมนู" / "ขยายเมนู" + `aria-expanded` + `aria-controls` ชี้ `<aside>` · ปุ่ม ☰ < lg คงเดิม
+  - จำสถานะใน `localStorage` key `itsm.ui.sidebarCollapsed` (อ่าน/เขียนใน try/catch, อ่านไม่ได้ = ขยาย) · ค่าเริ่มต้น = ขยาย
+  - **อัปเดต (วันเดียวกัน)**: ผู้ใช้ขอย้ายปุ่มหุบ/ขยายจาก header ไปกลาง sidebar แบบ ribbon → แท็บแคปซูล 20×48 (`rounded-full`) วางคร่อมขอบขวาของ `<aside>` (ครึ่งหนึ่งยื่นเข้าช่องว่าง 12px ระหว่าง sidebar กับ panel) กึ่งกลางแนวตั้ง (`top: 50%`, `translateY(-50%)`) · พื้น `--sidebar-bg` + ขอบ 1px `--sidebar-border` + `--shadow-md` · icon `ChevronLeft` (ตอนขยาย) / `ChevronRight` (ตอนหุบ) 16px สี `--sidebar-fg` · พื้นที่กด ≥ 44×48 (ขยายด้วย pseudo-element เข้าไปทาง sidebar) · focus ring `--ring` (crimson) ตกบนพื้นนอกที่สว่าง · tooltip ขวา "ย่อเมนู" / "ขยายเมนู" · aria เดิม (`aria-label`, `aria-expanded`, `aria-controls="app-sidebar"`) · ลบปุ่มใน header · ≥ lg เท่านั้น · ไม่เพิ่ม token
+- **2026-11-13 (change request: app background image)** — ผู้ใช้ให้ภาพพื้นชมพู-ขาว มีโค้งแดงด้านล่างและ chevron จางด้านขวา (ภาพของ product เอง ไม่มีโลโก้/ข้อความ) มาใช้เป็นพื้นของ app → class `.app-canvas-surface` ใน `globals.css` (แบบเดียวกับ `.sidebar-surface`): `url("../assets/app-bg.webp") center bottom / cover no-repeat, var(--app-canvas)` · ใช้ที่ root ของ shell (`AppLayout`, เห็นเฉพาะ ≥ lg รอบ sidebar / panel) และ `<main>` ของหน้า Login (การ์ดขาวอยู่กลาง) · `src/assets/app-bg.webp` กว้าง 1920 · panel ขาวยังแยกด้วยขอบ 1px + shadow (`--content-panel-shadow`) · ข้อความไม่วางบนภาพโดยตรง (อยู่บน panel / การ์ดขาวทั้งหมด) จึงไม่กระทบ contrast · `--app-canvas` คงไว้เป็นสีสำรองระหว่างโหลด · ไม่เพิ่ม token
+  - **แก้ (วันเดียวกัน)**: ผู้ใช้ต้องการภาพนี้เป็นพื้นของ main content ไม่ใช่ parent → root ของ shell กลับเป็น `bg-[var(--app-canvas)]` และ Login กลับเป็น `bg-background` · เปลี่ยนชื่อ class เป็น `.content-panel-surface`: `url("../assets/app-bg.webp") center bottom / cover no-repeat, var(--content-panel-bg)` เฉพาะ ≥ lg (ใน `@media (min-width: 64rem)`; < lg panel เต็มจอ เลื่อนทั้งหน้า ภาพ cover บนหน้ายาวจะขยายเกิน จึงคงขาว) · ใส่ที่ content panel (scroll container) — `background-attachment` ค่าเริ่มต้นทำให้ภาพอยู่กับที่ขณะเนื้อหาใน panel เลื่อน · header sticky: ≥ lg พื้นขาวโปร่ง 75% (`color-mix(in srgb, var(--content-panel-bg) 75%, transparent)`) + `backdrop-blur-md` ให้เนื้อหาที่เลื่อนผ่านไม่ทับตัวหนังสือ และไม่เป็นแถบขาวทึบบนภาพ · การ์ดยังขาวทึบ · ข้อความที่วางบน panel ตรงๆ (title, แถบสรุป, หัวข้อเล็ก) อยู่ส่วนบนที่เป็นชมพูอ่อน (`--muted-foreground` ≥ 6:1) · ส่วนโค้งแดงด้านล่างไม่ควรมีข้อความวางตรงๆ — ตรวจทุกหน้า
+  - **อัปเดต (วันเดียวกัน)**: ผู้ใช้บอกว่าภาพเด่นกว่าเนื้อหา → ทับภาพด้วยชั้นขาว `--content-panel-image-wash` (token ใหม่ = `--content-panel-bg` 60%) ใน `.content-panel-surface` (gradient สีเดียววางบนภาพ) ภาพเหลือความเข้มราว 40% · ปรับความจางได้จากค่า % ใน token เดียว
+  - **อัปเดต (วันเดียวกัน)**: ผู้ใช้ให้รูป reference ของแท็บ ribbon → เปลี่ยนจากแคปซูลคร่อมขอบ เป็นแท็บติดด้านนอกขอบขวาของ `<aside>` (`translate-x-full`): 24×44, ซ้ายแบน มุมขวา `--radius-md`, พื้น `--primary` (hover `--primary-hover`), chevron `--primary-foreground` 20px stroke 2.5, `--shadow-sm` ไม่มีขอบ · แท็บยื่นข้ามช่อง 12px ทับขอบ panel 12px → `<aside>` ใส่ `z-10` (sticky สร้าง stacking context, panel มาทีหลังใน DOM จะบังแท็บ) · hit area 44×44 (pseudo-element ขยายเข้า sidebar) · tooltip / aria เดิม
+  - **อัปเดต (วันเดียวกัน)**: ผู้ใช้ขอ rail ที่ compact ขึ้น → `--sidebar-rail-width` 72 → 56px · ตอนหุบ padding แนวนอนของเมนู `--space-3` → `--space-1` (ปุ่มเมนูกว้าง 48 ยัง ≥ 44) · การ์ด banner หุบ 56×56 + robot 40px
+  - **อัปเดต (วันเดียวกัน)**: ผู้ใช้ให้ภาพแดงแบบเหลี่ยมตัด (พื้นใส) เป็นพื้นของแท็บ ribbon → ตัดเฉพาะส่วนที่มีภาพเป็น `src/assets/ribbon-tab.webp` 48×88 (2x ของ 24×44) · class `.ribbon-tab-surface` ใน `globals.css`: ภาพ `100% 100%` + `--primary` สำรองระหว่างโหลด · hover = `brightness(1.1)` แทน `--primary-hover` · chevron ขาวบนส่วนที่สว่างสุดของภาพ ≥ 4.5:1
+  - **อัปเดต (วันเดียวกัน)**: ผู้ใช้ขอให้ภาพพื้น main content เต็ม container แบบไม่ตัดขอบ (ผู้ใช้เลือกยืดเต็มกรอบ แทน cover) → `.content-panel-surface` ใช้ `center / 100% 100%` เห็นภาพครบทุกด้าน สัดส่วนภาพตามสัดส่วน panel (ยืด/บีบได้) · ภาพยังอยู่กับที่ตอนเนื้อหาใน panel เลื่อน · wash 60% เดิม · ไม่เพิ่ม token

@@ -124,7 +124,7 @@ function CallForm() {
           <Details />
           <Attachments />
           {/* sticky on mobile so OK stays reachable on a long form (design-system §7) */}
-          <div className="sticky bottom-0 -mx-[var(--gutter)] flex justify-end gap-[var(--space-3)] bg-background/95 px-[var(--gutter)] pt-[var(--space-3)] pb-[max(var(--space-3),env(safe-area-inset-bottom))] shadow-[var(--shadow-md)] md:static md:mx-0 md:bg-transparent md:p-0 md:shadow-none">
+          <div className="sticky bottom-0 -mx-[var(--gutter)] flex justify-end gap-[var(--space-3)] bg-card/95 px-[var(--gutter)] pt-[var(--space-3)] pb-[max(var(--space-3),env(safe-area-inset-bottom))] shadow-[var(--shadow-md)] md:static md:mx-0 md:bg-transparent md:p-0 md:shadow-none">
             <Button type="button" variant="outline" onClick={() => (isDirty ? setConfirmLeave(true) : leave())}>
               Cancel
             </Button>

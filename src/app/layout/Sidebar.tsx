@@ -4,10 +4,13 @@ import { cn } from '@/lib/utils';
 import { dataStore } from '@/data/repositories';
 import { can } from '@/domain/access';
 import { useSession } from '@/features/auth/sessionStore';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
 import { NAV_ITEMS } from '../routes';
 
 interface Props {
   onNavigate?: () => void;
+  /** ≥ lg navigation rail: icon only, label kept for screen readers and shown as a tooltip */
+  collapsed?: boolean;
 }
 
 interface IndicatorBox {
@@ -20,7 +23,7 @@ interface IndicatorBox {
 
 const HIDDEN: IndicatorBox = { top: 0, left: 0, width: 0, height: 0, visible: false };
 
-export function Sidebar({ onNavigate }: Props) {
+export function Sidebar({ onNavigate, collapsed = false }: Props) {
   const { user } = useSession();
   const { pathname } = useLocation();
   const permissions = dataStore.getDataset().rolePermissions;
@@ -51,10 +54,10 @@ export function Sidebar({ onNavigate }: Props) {
       cancelAnimationFrame(frame);
       observer.disconnect();
     };
-  }, [pathname]);
+  }, [pathname, collapsed]);
 
   return (
-    <nav ref={navRef} aria-label="เมนูหลัก" className="relative flex flex-col gap-[var(--space-1)] p-[var(--space-3)]">
+    <nav ref={navRef} aria-label="เมนูหลัก" className={cn('relative flex flex-col gap-[var(--space-1)] py-[var(--space-3)]', collapsed ? 'px-[var(--space-1)]' : 'px-[var(--space-3)]')}>
       <span
         aria-hidden="true"
         className={cn(
@@ -68,22 +71,31 @@ export function Sidebar({ onNavigate }: Props) {
           opacity: box.visible ? 1 : 0,
         }}
       />
-      {items.map(({ path, label, icon: Icon }) => (
-        <NavLink
-          key={path}
-          to={path}
-          onClick={onNavigate}
-          className={({ isActive }) =>
-            cn(
-              'relative flex min-h-[var(--tap-target)] items-center gap-[var(--space-3)] rounded-[var(--radius-md)] px-[var(--space-3)] font-medium text-foreground transition-colors duration-[var(--dur-fast)] hover:bg-muted',
-              isActive && 'font-semibold text-[var(--sidebar-item-active-fg)] hover:bg-transparent',
-            )
-          }
-        >
-          <Icon aria-hidden="true" strokeWidth={1.75} className="size-[var(--icon-md)] shrink-0" />
-          {label}
-        </NavLink>
-      ))}
+      {items.map(({ path, label, icon: Icon }) => {
+        // string className (not NavLink's function form): TooltipTrigger's Slot would stringify a function
+        const link = (
+          <NavLink
+            key={path}
+            to={path}
+            onClick={onNavigate}
+            className={cn(
+              'relative flex min-h-[var(--tap-target)] items-center gap-[var(--space-3)] rounded-[var(--radius-md)] font-medium whitespace-nowrap text-foreground transition-colors duration-[var(--dur-fast)] hover:bg-muted',
+              'aria-[current=page]:font-semibold aria-[current=page]:text-[var(--sidebar-item-active-fg)] aria-[current=page]:hover:bg-transparent',
+              collapsed ? 'justify-center px-0' : 'px-[var(--space-3)]',
+            )}
+          >
+            <Icon aria-hidden="true" strokeWidth={1.75} className="size-[var(--icon-md)] shrink-0" />
+            {collapsed ? <span className="sr-only">{label}</span> : label}
+          </NavLink>
+        );
+        if (!collapsed) return link;
+        return (
+          <Tooltip key={path}>
+            <TooltipTrigger asChild>{link}</TooltipTrigger>
+            <TooltipContent side="right">{label}</TooltipContent>
+          </Tooltip>
+        );
+      })}
     </nav>
   );
 }

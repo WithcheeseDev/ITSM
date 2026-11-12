@@ -161,6 +161,7 @@
   --gutter: var(--space-4);    /* mobile side padding */
   --gutter-lg: var(--space-8); /* ≥ lg side padding */
   --sidebar-width: 15rem;      /* 240 */
+  --sidebar-rail-width: 3.5rem; /* 56 — collapsed rail (≥ lg) */
   --header-height: 3.5rem;     /* 56 */
   --section-gap: var(--space-6);
   --tap-target: 2.75rem;       /* 44px — WCAG 2.5.8 / policy */
@@ -178,8 +179,10 @@
 
   --card-padding: var(--space-5);
   --card-radius: var(--radius-lg);
-  --card-shadow: var(--shadow-sm);
-  --card-shadow-hover: var(--shadow-md);
+  /* cards sit on the white content panel — a 1px hairline (as a shadow ring, no layout shift) keeps them apart */
+  --card-border: var(--border);
+  --card-shadow: 0 0 0 1px var(--card-border), var(--shadow-sm);
+  --card-shadow-hover: 0 0 0 1px var(--card-border), var(--shadow-md);
 
   --table-header-bg: var(--surface-sunken);
   --table-row-height: var(--tap-target);
@@ -201,6 +204,14 @@
   --sidebar-inset: var(--space-3);                    /* floating card: gap to the viewport edges (≥ lg) */
   --sidebar-radius: var(--radius-lg);
   --sidebar-shadow: var(--shadow-lg);
+
+  /* Shell canvas behind the two panels (≥ lg) — dark enough that the light content panel reads as its own surface */
+  --app-canvas: var(--palette-neutral-100);
+  /* Content panel — the surface right of the sidebar (≥ lg: framed like the sidebar · < lg: full-bleed) */
+  --content-panel-bg: var(--card);
+  --content-panel-radius: var(--sidebar-radius);
+  --content-panel-shadow: 0 0 0 1px var(--border), var(--shadow-md);
+  --content-panel-image-wash: color-mix(in srgb, var(--content-panel-bg) 60%, transparent); /* white veil over the panel image (≥ lg): image shows at ~40% */
 
   /* Status groups (StatusBadge — always icon + label) */
   /* D3-15 rev: progress moved off primary-soft — red-tinted badges must stay "rejected" only */
