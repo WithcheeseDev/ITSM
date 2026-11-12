@@ -10,7 +10,8 @@ const buttonVariants = cva(
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-[var(--palette-red-700)] focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
+          // D3-15 rev: only the primary button is filled red — destructive is outlined so the two never look alike
+          "border border-destructive bg-card text-destructive shadow-xs hover:bg-destructive-soft focus-visible:ring-destructive/20",
         outline:
           "border bg-background shadow-xs hover:bg-muted hover:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:

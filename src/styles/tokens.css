@@ -7,7 +7,20 @@
 
 /* === PRIMITIVES === */
 :root {
-  /* Indigo-blue — primary */
+  /* Crimson — primary (D3-15 rev 2026-11-13) */
+  --palette-crimson-50: #fdedef;
+  --palette-crimson-100: #fad4d9;
+  --palette-crimson-200: #f4aab4;
+  --palette-crimson-600: #b0142a;
+  --palette-crimson-700: #8e1022;
+  --palette-crimson-800: #6f0c1a;
+
+  /* Charcoal — accent (D3-15 rev) */
+  --palette-charcoal-50: #eef0f3;
+  --palette-charcoal-600: #2e3440;
+  --palette-charcoal-700: #1f242c;
+
+  /* Indigo / teal — retired by D3-15 rev; names kept (token names are fixed), no semantic token uses them */
   --palette-indigo-50: #eef2ff;
   --palette-indigo-100: #e0e7ff;
   --palette-indigo-200: #c7d2fe;
@@ -15,24 +28,23 @@
   --palette-indigo-700: #2f3da8;
   --palette-indigo-800: #26318a;
 
-  /* Teal — accent */
   --palette-teal-50: #eaf7f5;
   --palette-teal-100: #cdede8;
   --palette-teal-600: #0f7c74;
   --palette-teal-700: #0b635d;
 
-  /* Warm neutral */
+  /* Cool neutral (D3-15 rev) */
   --palette-neutral-0: #ffffff;
-  --palette-neutral-25: #fcfbf9;
-  --palette-neutral-50: #f7f5f2;
-  --palette-neutral-100: #efece7;
-  --palette-neutral-200: #e2ded7;
-  --palette-neutral-300: #cbc5bc;
-  --palette-neutral-400: #8c857a;
-  --palette-neutral-500: #78716a;
-  --palette-neutral-600: #5c5650;
-  --palette-neutral-700: #45403b;
-  --palette-neutral-900: #1c1a18;
+  --palette-neutral-25: #fcfcfc;
+  --palette-neutral-50: #fafafa;
+  --palette-neutral-100: #f1f1f3;
+  --palette-neutral-200: #e4e4e8;
+  --palette-neutral-300: #cfcfd6;
+  --palette-neutral-400: #878792;
+  --palette-neutral-500: #6e6e78;
+  --palette-neutral-600: #55555e;
+  --palette-neutral-700: #3f3f46;
+  --palette-neutral-900: #18181b;
 
   /* Semantic hues */
   --palette-green-50: #eaf6ef;
@@ -80,10 +92,10 @@
   --radius-lg: 0.75rem;
   --radius-full: 9999px;
 
-  /* Shadow (warm-tinted) */
-  --shadow-sm: 0 1px 2px rgb(28 26 24 / 0.06);
-  --shadow-md: 0 2px 4px rgb(28 26 24 / 0.06), 0 4px 12px rgb(28 26 24 / 0.06);
-  --shadow-lg: 0 8px 24px rgb(28 26 24 / 0.12);
+  /* Shadow (neutral-tinted) */
+  --shadow-sm: 0 1px 2px rgb(24 24 27 / 0.06);
+  --shadow-md: 0 2px 4px rgb(24 24 27 / 0.06), 0 4px 12px rgb(24 24 27 / 0.06);
+  --shadow-lg: 0 8px 24px rgb(24 24 27 / 0.12);
 
   /* Motion */
   --dur-fast: 120ms;
@@ -104,28 +116,28 @@
   --popover: var(--palette-neutral-0);
   --popover-foreground: var(--palette-neutral-900);
 
-  --primary: var(--palette-indigo-600);
-  --primary-hover: var(--palette-indigo-700);
-  --primary-active: var(--palette-indigo-800);
+  --primary: var(--palette-crimson-600);
+  --primary-hover: var(--palette-crimson-700);
+  --primary-active: var(--palette-crimson-800);
   --primary-foreground: var(--palette-neutral-0);
-  --primary-soft: var(--palette-indigo-50);
-  --primary-soft-foreground: var(--palette-indigo-700);
+  --primary-soft: var(--palette-crimson-50);
+  --primary-soft-foreground: var(--palette-crimson-700);
 
   --secondary: var(--palette-neutral-100);
   --secondary-foreground: var(--palette-neutral-900);
 
-  --accent: var(--palette-teal-600);
+  --accent: var(--palette-charcoal-600);
   --accent-foreground: var(--palette-neutral-0);
-  --accent-soft: var(--palette-teal-50);
-  --accent-soft-foreground: var(--palette-teal-700);
+  --accent-soft: var(--palette-charcoal-50);
+  --accent-soft-foreground: var(--palette-charcoal-700);
 
   --muted: var(--palette-neutral-100);
   --muted-foreground: var(--palette-neutral-600);
   --placeholder: var(--palette-neutral-500);
 
   --border: var(--palette-neutral-200);           /* decorative dividers */
-  --input: var(--palette-neutral-400);            /* form control border, 3.65:1 on white */
-  --ring: var(--palette-indigo-600);
+  --input: var(--palette-neutral-400);            /* form control border, 3.55:1 on white */
+  --ring: var(--palette-crimson-600);
 
   --success: var(--palette-green-600);
   --success-soft: var(--palette-green-50);
@@ -181,10 +193,11 @@
   --sidebar-item-active-fg: var(--primary-soft-foreground);
 
   /* Status groups (StatusBadge — always icon + label) */
-  --status-new-bg: var(--info-soft);
-  --status-new-fg: var(--info-soft-foreground);
-  --status-progress-bg: var(--primary-soft);
-  --status-progress-fg: var(--primary-soft-foreground);
+  /* D3-15 rev: progress moved off primary-soft — red-tinted badges must stay "rejected" only */
+  --status-new-bg: var(--accent-soft);
+  --status-new-fg: var(--accent-soft-foreground);
+  --status-progress-bg: var(--info-soft);
+  --status-progress-fg: var(--info-soft-foreground);
   --status-waiting-bg: var(--warning-soft);
   --status-waiting-fg: var(--warning-soft-foreground);
   --status-resolved-bg: var(--success-soft);

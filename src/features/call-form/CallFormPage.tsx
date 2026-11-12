@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
+import { CircleX } from 'lucide-react';
 import { toast } from 'sonner';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { dataStore } from '@/data/repositories';
@@ -143,6 +144,7 @@ function CallForm() {
           <AlertDialogFooter>
             <AlertDialogCancel>กลับไปกรอกต่อ</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={leave}>
+              <CircleX aria-hidden="true" />
               ทิ้งข้อมูล
             </AlertDialogAction>
           </AlertDialogFooter>

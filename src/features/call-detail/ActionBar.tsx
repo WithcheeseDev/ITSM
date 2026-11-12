@@ -196,6 +196,7 @@ export function ActionBar({
                 done(r, 'ยกเลิกเรื่องแล้ว');
               }}
             >
+              <XCircle aria-hidden="true" />
               ยกเลิกเรื่อง
             </AlertDialogAction>
           </AlertDialogFooter>

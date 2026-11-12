@@ -437,3 +437,10 @@
 **Action**: build-approved
 **Artifacts**: build-report.md
 **Outcome**: Build verified (approved-with-warnings: chunk size, no linter, task 4.6 blocked). 209 tests passing, 4 quality gates met, lint skipped. Deploy phase not dispatched — skipped this round per D4-8 (tasks.md Phase 6); delivery = local dev + `npm run build`. Workflow stays active only for task 4.6 (Azure contract OD-4).
+
+### [2026-11-13T05:30:00Z] Change Request: โทนแดง-ขาว (D3-15 rev)
+
+**Phase**: design → implementation (refine-spec-first)
+**Action**: change request — user asked for a red-white design "like CIMB"; clarified to red-white tone only, no CIMB logo / hex / name (HARD RULE #9, Requirements §1.2). Workflow: AI-DLC change request. Decisions: "use recommendations".
+**Artifacts**: decisions-design.md § Add-on (D3-15 rev) · .claude/rules/design-system.md §1, §2 (+ contrast table), §6 (Button destructive), §9 Add-on · src/styles/tokens.css (new primitives crimson / charcoal, neutral values → cool, primary / accent / ring repointed, status new → accent-soft, progress → info-soft; indigo / teal names kept, unused) · src/assets/logo.svg (fill → #b0142a; loaded via <img>, cannot read CSS vars) · src/shared/ui/button.tsx (destructive variant → outlined) · CircleX icon on the 4 destructive actions: UserMenu reset, RejectDialog ปฏิเสธ, ActionBar ยกเลิกเรื่อง, CallFormPage ทิ้งข้อมูล
+**Outcome**: pass — all text / UI pairs ≥ AA (primary 7.05, soft 8.25, accent 12.49, destructive 5.52, placeholder 5.04, input border 3.55, status progress 6.35, new 13.66). Found during browser check: progress badges on primary-soft turned pink-red next to rejected → moved to info-soft (recorded in design-system §9). validate-tokens clean, tsc ✓, build ✓, `npm test` 206 ✓, `npm run test:e2e` 3 ✓, UI audit 45 runs (375 / 768 / 1280): 0 overflow, 0 unlabeled, 0 console errors.

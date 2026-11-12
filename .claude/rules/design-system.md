@@ -6,16 +6,17 @@
 
 ## 1. หลักคิด
 - ผู้ใช้หลักทำงานบน PC ดูตารางและฟอร์มทั้งวัน → อ่านง่าย ความหนาแน่นพอดี ลำดับชั้นชัด (สถานะ, Time Left, ปุ่ม action เด่นสุด)
-- คาแรกเตอร์: ระบบงานภายในที่น่าเชื่อถือแต่ไม่แข็ง — indigo-blue เป็นแกน, teal เป็นจุดเน้นรอง, พื้น neutral อุ่น (ไม่ใช่เทาเย็นแบบ template)
+- คาแรกเตอร์: ระบบงานภายในโทนแดง-ขาว — crimson เป็นแกน, charcoal เป็นจุดเน้นรอง, พื้นขาวอมเทา (D3-15 rev 2026-11-13 · ไม่ใช้แบรนด์/hex ขององค์กรใด)
+- สีแดงเต็มพื้นมีแค่ปุ่มหลัก — destructive ใช้ปุ่มขอบแดง + icon `CircleX` เพื่อไม่ให้สับสนกับ primary
 - ห้ามลอกระบบเดิม (Requirements §1.2) · ห้ามอิโมจิ · light mode เท่านั้น
 
 ## 2. Decisions
 
 | หัวข้อ | Decision | เหตุผล | ที่มา |
 |---|---|---|---|
-| Primary | Indigo `#3B4CCA` (hover `#2F3DA8`) | ตัวอักษรขาวบนปุ่ม 6.83:1 · ต่างจากฟ้ามาตรฐานของ template | D3-15 |
-| Accent | Teal `#0F7C74` | ใช้กับ highlight รอง/ลิงก์ AI · ขาวบน teal 5.05:1 | D3-15 |
-| Neutral | Warm neutral `#F7F5F2` (page) → `#1C1A18` (text) | ลดความแข็งของตาราง · text บน page 15.9:1 | D3-15 |
+| Primary | Crimson `#B0142A` (hover `#8E1022`, active `#6F0C1A`, soft `#FDEDEF`) | ตัวอักษรขาวบนปุ่ม 7.05:1 · โทนแดง-ขาวตามที่ผู้ใช้ขอ · hex เลือกเอง ไม่ใช่สีแบรนด์ขององค์กรใด | D3-15 rev |
+| Accent | Charcoal `#2E3440` (soft `#EEF0F3`) | highlight รอง/ลิงก์ AI · ขาวบน charcoal 12.49:1 · ชุดแดง-ขาว-เทาเข้ม | D3-15 rev |
+| Neutral | Cool neutral `#FAFAFA` (page) → `#18181B` (text) | พื้นขาวอมเทาให้แดงเด่น · text บน page 16.97:1 | D3-15 rev |
 | Semantic | success `#1E7B45` · warning `#B26F00` (icon) / `#8A4F00` (text) · danger `#C4302B` · info `#1F6FB2` | ทุกคู่ text/พื้นอ่อน ≥ 6:1 | แนะนำ |
 | Font | IBM Plex Sans Thai + IBM Plex Sans (OFL) ผ่าน @fontsource self-host | ไทย/อังกฤษชุดเดียวกัน ตัวเลขในตารางชัด · ไม่โหลด CDN | D3-16 |
 | Icon | Lucide (ISC) ผ่าน `lucide-react` · stroke 1.75 | `database.json` ใช้ชื่อ Lucide อยู่แล้ว | data |
@@ -25,15 +26,18 @@
 ### Contrast ที่ตรวจแล้ว (WCAG 2.2 AA)
 | คู่ | Ratio | ใช้กับ |
 |---|---|---|
-| foreground / background | 15.94 | body text |
-| muted-foreground / white | 7.24 | helper, meta |
-| primary-foreground / primary | 6.83 | ปุ่มหลัก |
-| primary / white | 6.83 | ลิงก์, focus ring |
-| placeholder / white | 4.81 | placeholder |
-| input border / white | 3.65 | ขอบ input (UI ≥ 3:1) |
+| foreground / background | 16.97 | body text |
+| muted-foreground / white | 7.38 | helper, meta |
+| primary-foreground / primary | 7.05 | ปุ่มหลัก |
+| primary / white | 7.05 | ลิงก์, focus ring |
+| primary-soft-foreground / primary-soft | 8.25 | sidebar active, status progress |
+| accent-foreground / accent | 12.49 | accent |
+| destructive / white | 5.52 | ข้อความ + ขอบปุ่ม destructive |
+| placeholder / white | 5.04 | placeholder |
+| input border / white | 3.55 | ขอบ input (UI ≥ 3:1) |
 | warning icon / white | 4.06 | icon เท่านั้น ไม่ใช่ข้อความ |
 | status fg / status bg (ทุกกลุ่ม) | ≥ 6.0 | StatusBadge |
-> `--border` (`#E2DED7`) เป็นเส้นตกแต่งเท่านั้น — ห้ามใช้เป็นขอบ form control
+> `--border` (`#E4E4E8`) เป็นเส้นตกแต่งเท่านั้น — ห้ามใช้เป็นขอบ form control
 
 ## 3. Token Map (สรุป — ค่าเต็มใน `tokens.css`)
 
@@ -106,7 +110,7 @@ component ใช้ utility (`bg-primary`, `text-muted-foreground`) หรือ
 | Button primary | `--primary` / ขาว | `--primary-hover` | `--primary-active` | ring 2px `--ring` offset 2px | `--muted` / `--muted-foreground` + เหตุผลแสดงเป็นข้อความข้างปุ่ม (ไม่ใช่ tooltip) |
 | Button secondary | `--secondary` | `--surface-sunken` เข้มขึ้น | — | ring | เหมือนบน |
 | Button ghost | โปร่ง | `--muted` | — | ring | เหมือนบน |
-| Button destructive | `--destructive` | `--palette-red-700` | — | ring | เหมือนบน |
+| Button destructive | `--card` + ขอบ/ข้อความ `--destructive` + icon `CircleX` | `--destructive-soft` | — | ring | เหมือนบน |
 | Input / Select | ขาว, ขอบ `--input` | ขอบ `--muted-foreground` | — | ring + ขอบ `--primary` | `--muted` |
 | Input error | ขอบ `--destructive` + ข้อความใต้ field (`aria-describedby`) + icon `CircleAlert` | | | | |
 | Card | `--card`, radius 12, `--shadow-sm` | `--shadow-md` (เฉพาะการ์ดที่คลิกได้) | — | ring | — |
@@ -155,3 +159,4 @@ sidebar แบน ทุกหน้าเป็น item ระดับบน�
 ## 9. Add-on
 - **2026-11-12 (Task 1.3)** — `@theme inline` ใน `globals.css` **ไม่** map `--font-sans` / `--radius-*` / `--shadow-*` (ตัวอย่าง §3 จะอ้างตัวเองวน) เพราะ `tokens.css` ประกาศชื่อเดียวกันแบบ unlayered ทับ theme layer ของ Tailwind อยู่แล้ว · `@custom-variant dark` ผูกกับ class `.dark` ที่ไม่ใช้ → `dark:` ใน shadcn ไม่ทำงาน (light only) · shadcn ใช้ `accent` เป็นสี hover แต่ของเรา accent = teal → แก้ hover เป็น `muted` ทุก component
 - **2026-11-12 (Task 2.8)** — เพิ่ม token layout `--form-max: 55rem` (880px) สำหรับคอลัมน์ฟอร์ม Add Support Call ตาม §7 (เดิมระบุ "กว้าง ≤ 880" แต่ไม่มี token)
+- **2026-11-13 (change request: โทนแดง-ขาว)** — D3-15 rev: primary indigo → crimson `#B0142A`, accent teal → charcoal `#2E3440`, neutral อุ่น → neutral เย็น (`#FAFAFA` page) · ไม่ใช้โลโก้/hex/ชื่อแบรนด์ขององค์กรใด (HARD RULE #9) · เพิ่ม primitive `--palette-crimson-*`, `--palette-charcoal-*` · `--palette-indigo-*`, `--palette-teal-*` คงชื่อไว้ (ห้ามลบชื่อ token) แต่ไม่มี semantic ใดอ้างแล้ว · ปุ่ม destructive เปลี่ยนจากแดงเต็มพื้นเป็นขอบแดง + icon `CircleX` เพราะแดง primary กับ `--destructive` ต่างกันแค่ 1.28:1 · StatusBadge: กลุ่ม progress เดิมใช้ `--primary-soft` (กลายเป็นชมพูแดง ใกล้กลุ่ม rejected) → ย้ายเป็น `--info-soft` (ฟ้า, 6.35:1) และกลุ่ม new ย้ายเป็น `--accent-soft` (charcoal, 13.66:1)

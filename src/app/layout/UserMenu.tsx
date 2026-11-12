@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { ChevronDown, CircleUserRound, LogOut, RotateCcw } from 'lucide-react';
+import { ChevronDown, CircleUserRound, CircleX, LogOut, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { dataStore } from '@/data/repositories';
 import { ROLE_LABELS, useSession } from '@/features/auth/sessionStore';
@@ -84,6 +84,7 @@ export function UserMenu() {
           <AlertDialogFooter>
             <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={reset}>
+              <CircleX aria-hidden="true" />
               รีเซ็ตข้อมูล
             </AlertDialogAction>
           </AlertDialogFooter>

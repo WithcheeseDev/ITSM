@@ -219,3 +219,14 @@
 - 🔴 none · 🟡 none
 - 🟢 D3-12 Minimal ปกติรวม health endpoint แต่ D3-14 = ไม่มี server → Minimal = structured logging (PII-stripped) อย่างเดียว; AI proxy อยู่ใน Vite dev server
 - ✅ API key ไม่อยู่ใน client (D3-8 proxy) — ผ่าน rule "API Keys in Client-Side Code"
+
+## Add-on
+
+### 2026-11-13 — D3-15 rev: โทนแดง-ขาว (change request)
+- **คำขอ**: ผู้ใช้ขอปรับ design เป็นสีแดง-ขาว "เหมือน CIMB" → ยืนยันแล้วว่าเอาแค่โทนแดง-ขาว ไม่ใช้แบรนด์ CIMB (HARD RULE #9, Requirements §1.2)
+- **Decision** ("use recommendations"):
+  1. Primary crimson `#B0142A` / hover `#8E1022` / active `#6F0C1A` / soft `#FDEDEF` (ขาวบน primary 7.05:1)
+  2. แดงเต็มพื้นเฉพาะปุ่มหลัก · ปุ่ม destructive = ขอบแดง + icon `CircleX` (primary กับ destructive ต่างกันแค่ 1.28:1)
+  3. Accent charcoal `#2E3440` (12.49:1) · neutral เย็น page `#FAFAFA`
+- **แทนที่**: D3-15 เดิม (indigo + teal บน neutral อุ่น)
+- **Sync**: `.claude/rules/design-system.md` §1, §2, §6, §9 · `src/styles/tokens.css`
