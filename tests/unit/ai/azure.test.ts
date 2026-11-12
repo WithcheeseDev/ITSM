@@ -4,7 +4,21 @@ import type { AiTurn } from '@/features/ai-assistant/assistant';
 import { STATIC_ROUTES } from '@/features/ai-assistant/ruleBased';
 import { APP_STATIC_ROUTES } from '../../../server/aiAssist';
 
-const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } });
+const NDJSON = { 'Content-Type': 'application/x-ndjson' };
+/** 200 NDJSON body whose only line is the terminal done line carrying `result`. */
+const ok = (result: unknown) => new Response(`${JSON.stringify({ type: 'done', result })}\n`, { status: 200, headers: NDJSON });
+/** 200 body streamed as the given byte chunks. */
+const chunked = (chunks: Uint8Array[]) =>
+  new Response(
+    new ReadableStream<Uint8Array>({
+      start(c) {
+        chunks.forEach((x) => c.enqueue(x));
+        c.close();
+      },
+    }),
+    { status: 200, headers: NDJSON },
+  );
+const lines = (...objs: unknown[]) => objs.map((o) => `${JSON.stringify(o)}\n`).join('');
 const out = (o: Partial<Record<'kind' | 'serviceDefinitionId' | 'route' | 'summary' | 'reply', string | null>>) =>
   ok({ kind: 'unknown', serviceDefinitionId: null, route: null, summary: null, reply: null, ...o });
 
@@ -75,6 +89,29 @@ describe('AzureAssistant via askAssistant (VITE_AI_MODE=azure)', () => {
     expect(JSON.stringify(vi.mocked(console.warn).mock.calls)).toContain('bad_output');
   });
 
+  it('streams NDJSON split inside a Thai character and mid-line: onDelta gets accumulated text, done reply → result', async () => {
+    const body = new TextEncoder().encode(
+      lines({ type: 'delta', text: 'สวัส' }, { type: 'delta', text: 'ดีครับ' }) +
+        JSON.stringify({ type: 'done', result: { kind: 'reply', serviceDefinitionId: null, route: null, summary: null, reply: ' สวัสดีครับ ' } }) +
+        `\n${JSON.stringify({ type: 'delta', text: 'ignored after done' })}\n`,
+    );
+    // '{"type":"delta","text":"' is 24 ASCII bytes, Thai chars are 3 bytes: cut 1 byte into the 2nd Thai char,
+    // then mid second line (inside a Thai char too), then mid done line
+    const cuts = [0, 24 + 4, 39 + 24 + 7, 120, body.length];
+    vi.mocked(fetch).mockResolvedValue(chunked(cuts.slice(1).map((end, i) => body.slice(cuts[i], end))));
+    const onDelta = vi.fn();
+    const { askAssistant } = await import('@/features/ai-assistant/assistant');
+    expect(await askAssistant('สวัสดี', 'My Space', [], onDelta)).toEqual({ result: { kind: 'reply', text: 'สวัสดีครับ' }, notice: null });
+    expect(onDelta.mock.calls).toEqual([['สวัส'], ['สวัสดีครับ']]);
+  });
+
+  it('done draft after deltas goes through the existing mapping; a final line without \\n still counts', async () => {
+    const result = { kind: 'draft', serviceDefinitionId: 'sdf_002', route: null, summary: 'Mouse ใช้งานไม่ได้', reply: null };
+    vi.mocked(fetch).mockResolvedValue(chunked([new TextEncoder().encode(`${lines({ type: 'delta', text: 'x' })}${JSON.stringify({ type: 'done', result })}`)]));
+    const { result: r } = await ask('เมาส์เสีย');
+    expect(r).toEqual({ kind: 'draft', draft: expect.objectContaining({ serviceDefinitionId: 'sdf_002', summary: 'Mouse ใช้งานไม่ได้' }) });
+  });
+
   it('navigate only to a real page', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(out({ kind: 'navigate', route: '/calls/search' }));
     expect(await ask('ค้นหา')).toEqual({ result: { kind: 'navigate', route: '/calls/search' }, notice: null });
@@ -90,6 +127,10 @@ describe('AzureAssistant via askAssistant (VITE_AI_MODE=azure)', () => {
     ['abort / timeout', () => vi.mocked(fetch).mockRejectedValue(new DOMException('t', 'TimeoutError')), 'timeout'],
     ['malformed shape', () => vi.mocked(fetch).mockResolvedValue(ok({ kind: 'draft', serviceDefinitionId: 1 })), 'bad_output'],
     ['non-JSON body', () => vi.mocked(fetch).mockResolvedValue(new Response('<html>', { status: 200 })), 'bad_output'],
+    ['error line', () => vi.mocked(fetch).mockResolvedValue(new Response(lines({ type: 'delta', text: 'กำลัง' }, { type: 'error', error: 'timeout' }), { status: 200 })), 'upstream'],
+    ['no terminal line', () => vi.mocked(fetch).mockResolvedValue(new Response(lines({ type: 'delta', text: 'สวัสดี' }), { status: 200 })), 'bad_output'],
+    ['invalid line', () => vi.mocked(fetch).mockResolvedValue(new Response(`${lines({ type: 'delta', text: 'a' })}{oops\n`, { status: 200 })), 'bad_output'],
+    ['unknown line type', () => vi.mocked(fetch).mockResolvedValue(new Response(lines({ type: 'ping' }), { status: 200 })), 'bad_output'],
   ])('%s → rule-based result + AI_UNAVAILABLE, logs a fixed reason and no user text', async (_n, arrange, reason) => {
     arrange();
     const answer = await ask('เมาส์เสีย โทร 0811111111');

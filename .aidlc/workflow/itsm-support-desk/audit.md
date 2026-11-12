@@ -597,3 +597,4 @@
 - 01:40 verify searchPages กับ Azure จริง: 15/17 ครั้งถูก (navigate /calls/search, /approvals, /my-space, /catalog · draft sdf_002, sdf_057) · 2 ครั้ง 502 หลังค้างซ้ำ 2 รอบ → browser fallback · เพิ่ม stallRetryFetch (3.5s ต่อ request, retry 1) · กฎ "ดู catalog" = navigate
 - 02:00 AI Assistant ตอบคำถามทั่วไป: kind `reply` + field `reply` (server agent + browser) · integration.md, api-spec.md §2 (Add-on)
 - 02:30 AI memory: request เพิ่ม history (≤ 6 รอบ, stateless) + tool recallConversation เฉพาะเมื่อมีประวัติ · requirements US-034, integration.md, api-spec.md §2, components.md, nfr.md (Add-on)
+- 03:00 AI streaming (NDJSON delta/done/error) + typing indicator + typewriter · api-spec.md §2, integration.md, design-system.md §9 (Add-on)

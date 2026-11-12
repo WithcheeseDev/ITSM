@@ -39,5 +39,7 @@ export function createAssistAgent(model: LanguageModel, history: ConversationTur
     tools: createAssistTools(history),
     output: Output.object({ schema: assistOutputSchema }),
     stopWhen: isStepCount(history.length > 0 ? 5 : 4),
+    // the SDK default console.error(error) for stream errors would log request bodies / model text; the caller logs metadata
+    onError: () => {},
   });
 }

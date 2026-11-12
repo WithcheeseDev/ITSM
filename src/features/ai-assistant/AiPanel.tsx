@@ -11,12 +11,16 @@ import { Label } from '@/shared/ui/label';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
 import { Textarea } from '@/shared/ui/textarea';
 import { askAssistant, buildHistory, type AiResult } from './assistant';
+import { Typewriter } from './Typewriter';
+import { TypingIndicator } from './TypingIndicator';
 
 interface Message {
   id: number;
   text: string;
   result: AiResult | null; // null while waiting
   notice: string | null;
+  streamText: string; // streamed reply preview while result is null
+  typed: boolean; // reply fully revealed once: never replays (e.g. when the sheet reopens)
 }
 
 const ROUTE_LIST = Object.values(ROUTES);
@@ -44,11 +48,13 @@ export function AiPanel({ me, open, onOpenChange }: { me: User; open: boolean; o
     if (!input || busy) return;
     const id = nextId.current++;
     const history = buildHistory(messages, d); // before the new message is appended
-    setMessages((m) => [...m, { id, text: input, result: null, notice: null }]);
+    setMessages((m) => [...m, { id, text: input, result: null, notice: null, streamText: '', typed: false }]);
     setText('');
     setBusy(true);
     try {
-      const answer = await askAssistant(input, pageNameOf(pathname), history);
+      const answer = await askAssistant(input, pageNameOf(pathname), history, (soFar) =>
+        setMessages((m) => m.map((x) => (x.id === id ? { ...x, streamText: soFar } : x))),
+      );
       setMessages((m) => m.map((x) => (x.id === id ? { ...x, result: answer.result, notice: answer.notice } : x)));
     } finally {
       setBusy(false);
@@ -59,6 +65,8 @@ export function AiPanel({ me, open, onOpenChange }: { me: User; open: boolean; o
     onOpenChange(false);
     void navigate(to, state ? { state } : undefined);
   };
+
+  const markTyped = (id: number) => setMessages((m) => m.map((x) => (x.id === id ? { ...x, typed: true } : x)));
 
   const renderResult = (r: AiResult) => {
     if (r.kind === 'draft') {
@@ -88,7 +96,6 @@ export function AiPanel({ me, open, onOpenChange }: { me: User; open: boolean; o
         </Button>
       );
     }
-    if (r.kind === 'reply') return <p className="whitespace-pre-line">{r.text}</p>;
     return (
       <p>
         ยังไม่เข้าใจคำขอนี้ ลองบอกอาการ เช่น "เมาส์ใช้ไม่ได้" หรือหน้าที่ต้องการ เช่น "ดูเรื่องที่ค้างอยู่"
@@ -120,7 +127,20 @@ export function AiPanel({ me, open, onOpenChange }: { me: User; open: boolean; o
                 </p>
               )}
               <div className="flex flex-col gap-[var(--space-1)] rounded-[var(--radius-lg)] border border-border bg-card px-[var(--space-3)] py-[var(--space-3)]">
-                {m.result ? renderResult(m.result) : <p className="text-muted-foreground">กำลังคิด…</p>}
+                {m.result === null && !m.streamText ? (
+                  <TypingIndicator />
+                ) : m.result === null || m.result.kind === 'reply' ? (
+                  // one position for stream and final reply → the revealed count carries over when the stream ends
+                  <Typewriter
+                    key="reply"
+                    text={m.result ? m.result.text : m.streamText}
+                    streaming={m.result === null}
+                    animate={!m.typed}
+                    onDone={m.result ? () => markTyped(m.id) : undefined}
+                  />
+                ) : (
+                  renderResult(m.result)
+                )}
               </div>
             </li>
           ))}

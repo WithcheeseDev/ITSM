@@ -212,6 +212,30 @@
   }
 }
 
+/* AI panel (design-system §9 2026-11-14): waiting dots + typewriter caret. Reduced motion → still dots, no blink. */
+@keyframes typing-dot {
+  0%, 60%, 100% { opacity: 0.35; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+.typing-dot {
+  animation: typing-dot 1.2s var(--ease-standard) infinite;
+}
+@keyframes caret-blink {
+  50% { opacity: 0; }
+}
+.caret-blink {
+  animation: caret-blink 1s steps(1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .typing-dot {
+    animation: none !important;
+    opacity: 0.6;
+  }
+  .caret-blink {
+    animation: none !important;
+  }
+}
+
 /* Sidebar: supplied red geometric image + dark overlay. */
 .sidebar-surface {
   background:

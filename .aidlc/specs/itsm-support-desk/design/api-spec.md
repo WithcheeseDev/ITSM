@@ -174,3 +174,15 @@ resetToSeed(): void;
 - `history` ไม่บังคับ (ไม่ส่ง = `[]`) · array ≤ 6 รายการ เก่า → ใหม่ · แต่ละรายการ `{ user, assistant }` เป็น string ยาว 1–500 ตัวอักษรหลัง trim · key อื่นในรายการ → `400` · ผิดเงื่อนไขใด → `400 bad_request`
 - body cap 8KB → 32KB (ภาษาไทย 3 byte/ตัว: 6 × 1000 ตัว + text ≈ 21KB)
 - response / error code คงเดิม · ดู integration.md Add-on "Memory: tool recallConversation"
+
+### 2026-11-14 — §2 response เป็น stream (NDJSON)
+- request เหมือนเดิม · `405` / `400` / `500 config_missing` ยังตอบ JSON `{ error }` ตาม status เดิม (ก่อนเริ่ม agent)
+- เริ่ม agent แล้ว → `200`, `Content-Type: application/x-ndjson; charset=utf-8`, `Cache-Control: no-cache` · บรรทัดละ 1 JSON:
+```json
+{ "type": "delta", "text": "VPN คือ" }
+{ "type": "done", "result": { "kind": "reply", "serviceDefinitionId": null, "route": null, "summary": null, "reply": "VPN คือเครือข่ายส่วนตัวเสมือน" } }
+{ "type": "error", "error": "upstream" }
+```
+- `delta` ส่งเฉพาะเมื่อ kind ที่กำลังสร้างเป็น `reply`: `text` = ส่วนที่ต่อท้ายจากรอบก่อน · รวมไม่เกิน 1000 ตัวอักษร · เป็นตัวอย่างระหว่างทาง ยังไม่ผ่าน guard
+- จบด้วยบรรทัดปิดหนึ่งบรรทัดเสมอ: `done` (ผ่าน guard เดิมทุกข้อ: schema, route allow-list, reply ว่าง, ตัด 1000) หรือ `error` (`upstream` | `timeout`) · `502` / `504` เดิมย้ายมาเป็น `error`
+- browser: ไม่มีบรรทัดปิด หรือบรรทัดเสีย → `bad_output` · `error` → fallback rule-based + AI_UNAVAILABLE (เหมือนเดิม) · ผลสุดท้ายใช้จาก `done` เท่านั้น

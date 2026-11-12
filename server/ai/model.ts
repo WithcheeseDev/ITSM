@@ -18,16 +18,20 @@ const REQUEST_TIMEOUT_MS = 3500;
 /**
  * fetch with a per-request cap: a request that stalls (seen: one call ~7.5s while others take ~0.7s) is cut at 3.5s and
  * sent once more, so one slow request does not spend the whole 9s budget. The caller's abort still wins.
+ * The cap only bounds time-to-headers: it is cleared once base() resolves, so a streamed body keeps reading.
  */
 export function stallRetryFetch(base: typeof fetch = fetch, timeoutMs = REQUEST_TIMEOUT_MS): typeof fetch {
   return async (input, init) => {
     for (let attempt = 0; ; attempt++) {
-      const cap = AbortSignal.timeout(timeoutMs);
-      const signal = init?.signal ? AbortSignal.any([init.signal, cap]) : cap;
+      const cap = new AbortController();
+      const timer = setTimeout(() => cap.abort(new DOMException('stalled', 'TimeoutError')), timeoutMs);
+      const signal = init?.signal ? AbortSignal.any([init.signal, cap.signal]) : cap.signal;
       try {
         return await base(input, { ...init, signal });
       } catch (err) {
-        if (attempt > 0 || init?.signal?.aborted || !cap.aborted) throw err;
+        if (attempt > 0 || init?.signal?.aborted || !cap.signal.aborted) throw err;
+      } finally {
+        clearTimeout(timer);
       }
     }
   };

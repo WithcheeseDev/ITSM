@@ -35,7 +35,8 @@ export const MAX_HISTORY_TURNS = 6;
 export const MAX_TURN_CHARS = 500;
 
 export interface AiAssistant {
-  suggest(text: string, pageName: string, history: AiTurn[]): Promise<AiResult>;
+  /** onDelta: streamed reply text so far (preview only; Azure calls it, rule-based ignores it). */
+  suggest(text: string, pageName: string, history: AiTurn[], onDelta?: (soFar: string) => void): Promise<AiResult>;
 }
 
 function describeResult(r: AiResult, dataset: Pick<Dataset, 'serviceDefinitions'>): string {
@@ -87,11 +88,16 @@ function fallbackReason(err: unknown): string {
   return message === 'upstream' || message === 'bad_output' ? message : 'network';
 }
 
-export async function askAssistant(text: string, pageName: string, history: AiTurn[] = []): Promise<AiAnswer> {
+export async function askAssistant(
+  text: string,
+  pageName: string,
+  history: AiTurn[] = [],
+  onDelta?: (soFar: string) => void,
+): Promise<AiAnswer> {
   const dataset = dataStore.getDataset();
   if (AI_MODE === 'azure') {
     try {
-      return { result: await new AzureAssistant(dataset).suggest(text, pageName, history), notice: null };
+      return { result: await new AzureAssistant(dataset).suggest(text, pageName, history, onDelta), notice: null };
     } catch (err) {
       logger.warn('ai.fallback', { reason: fallbackReason(err), pageName });
       return { result: await new RuleBasedAssistant(dataset).suggest(text, pageName, history), notice: APP_ERROR_MESSAGES.AI_UNAVAILABLE };

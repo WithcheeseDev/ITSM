@@ -2,7 +2,9 @@
  * AI Assist middleware (integration.md Add-ons 2026-11-13): browser → POST /api/ai/assist { text, page, history? }
  * history = up to 6 earlier turns { user, assistant } sent by the browser each request; the agent reads them only via
  * the per-request recallConversation tool. The server never stores or logs them (stateless memory).
- * → AI SDK ToolLoopAgent (server/ai/agent.ts) on the model from AI_PROVIDER → { kind, serviceDefinitionId, route, summary, reply }.
+ * → AI SDK ToolLoopAgent (server/ai/agent.ts) on the model from AI_PROVIDER, streamed as NDJSON (200):
+ * {type:'delta',text} while the partial output is a reply, then one {type:'done',result:{ kind, serviceDefinitionId, route,
+ * summary, reply }} or {type:'error',error:'upstream'|'timeout'}. 405/400/500 stay plain JSON { error } before the agent starts.
  * Runs in `vite dev` and `vite preview` only; keys never leave Node.
  * Never returns or logs upstream bodies, keys, the user's text or model output.
  */
@@ -111,22 +113,59 @@ export async function handleAssist(req: IncomingMessage, res: ServerResponse, en
     return fail(res, 500, 'config_missing', errorMeta(err));
   }
   const provider = env.AI_PROVIDER;
-  const signal = AbortSignal.timeout(UPSTREAM_TIMEOUT_MS);
+  const timeout = AbortSignal.timeout(UPSTREAM_TIMEOUT_MS);
+  const client = new AbortController();
+  res.on('close', () => {
+    if (!res.writableFinished) client.abort();
+  });
+  const signal = AbortSignal.any([timeout, client.signal]);
+
+  // NDJSON from here on: status 200, then delta lines and exactly one terminal line (done | error)
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache');
+  const line = (body: unknown) => {
+    if (!res.destroyed && !res.writableEnded) res.write(`${JSON.stringify(body)}\n`);
+  };
+  const finish = (body: unknown) => {
+    line(body);
+    res.end();
+  };
+  /** The log keeps today's 502/504 codes so log readers see the same lines; the client gets an error line. */
+  const streamFail = (status: number, error: 'upstream' | 'timeout', meta: Record<string, unknown>) => {
+    console.warn('[ai-assist]', status, error, meta);
+    finish({ type: 'error', error });
+  };
+
   try {
-    const result = await createAssistAgent(model, input.history).generate({ prompt: input.text, abortSignal: signal });
-    const parsed = assistOutputSchema.safeParse(result.output);
-    if (!parsed.success) return fail(res, 502, 'upstream', { provider, steps: result.steps.length });
+    const result = await createAssistAgent(model, input.history).stream({ prompt: input.text, abortSignal: signal });
+    let sent = '';
+    for await (const partial of result.partialOutputStream) {
+      // trimmed like the done reply, so the deltas always add up to a prefix of it (and blank replies stream nothing)
+      const partialReply = partial?.kind === 'reply' && typeof partial.reply === 'string' ? partial.reply.trim() : undefined;
+      // only a pure extension of what was sent; anything else (rewritten text, past the cap) sends nothing
+      if (partialReply === undefined || sent.length >= MAX_REPLY || !partialReply.startsWith(sent)) continue;
+      const text = partialReply.slice(sent.length, MAX_REPLY);
+      if (!text) continue;
+      sent += text;
+      line({ type: 'delta', text });
+    }
+    const output = await result.output;
+    const steps = (await result.steps).length;
+    const parsed = assistOutputSchema.safeParse(output);
+    if (!parsed.success) return streamFail(502, 'upstream', { provider, steps });
     // fixed code only: the route text is model output and may echo the user's words
     if (parsed.data.kind === 'navigate' && !NAVIGABLE_ROUTES.has(parsed.data.route ?? ''))
-      return fail(res, 502, 'upstream', { provider, steps: result.steps.length, reason: 'route_not_allowed' });
+      return streamFail(502, 'upstream', { provider, steps, reason: 'route_not_allowed' });
     const reply = parsed.data.kind === 'reply' ? (parsed.data.reply ?? '').trim().slice(0, MAX_REPLY) : null;
-    if (parsed.data.kind === 'reply' && !reply)
-      return fail(res, 502, 'upstream', { provider, steps: result.steps.length, reason: 'empty_reply' });
-    console.warn('[ai-assist]', 200, { provider, steps: result.steps.length, turns: input.history.length });
-    send(res, 200, { ...parsed.data, reply });
+    if (parsed.data.kind === 'reply' && !reply) return streamFail(502, 'upstream', { provider, steps, reason: 'empty_reply' });
+    console.warn('[ai-assist]', 200, { provider, steps, turns: input.history.length });
+    finish({ type: 'done', result: { ...parsed.data, reply } });
   } catch (err) {
-    if (signal.aborted) return fail(res, 504, 'timeout', { provider });
-    return fail(res, 502, 'upstream', { provider, ...errorMeta(err) });
+    // client went away: nobody to answer, not a timeout
+    if (client.signal.aborted) return void res.end();
+    if (timeout.aborted) return streamFail(504, 'timeout', { provider });
+    return streamFail(502, 'upstream', { provider, ...errorMeta(err) });
   }
 }
 
