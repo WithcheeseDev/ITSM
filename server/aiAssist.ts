@@ -1,5 +1,7 @@
 /**
- * AI Assist middleware (integration.md Add-ons 2026-11-13): browser → POST /api/ai/assist { text, page }
+ * AI Assist middleware (integration.md Add-ons 2026-11-13): browser → POST /api/ai/assist { text, page, history? }
+ * history = up to 6 earlier turns { user, assistant } sent by the browser each request; the agent reads them only via
+ * the per-request recallConversation tool. The server never stores or logs them (stateless memory).
  * → AI SDK ToolLoopAgent (server/ai/agent.ts) on the model from AI_PROVIDER → { kind, serviceDefinitionId, route, summary, reply }.
  * Runs in `vite dev` and `vite preview` only; keys never leave Node.
  * Never returns or logs upstream bodies, keys, the user's text or model output.
@@ -9,14 +11,17 @@ import type { Plugin } from 'vite';
 import { assistOutputSchema, createAssistAgent } from './ai/agent';
 import { resolveModel, type AiEnv } from './ai/model';
 import { NAVIGABLE_ROUTES } from './ai/pages';
+import type { ConversationTurn } from './ai/tools';
 
 export { APP_STATIC_ROUTES } from './ai/tools';
 export type { AiEnv } from './ai/model';
 
 export const AI_ASSIST_PATH = '/api/ai/assist';
-const MAX_BODY_BYTES = 8 * 1024;
+const MAX_BODY_BYTES = 32 * 1024;
 const MAX_TEXT = 1000;
 const MAX_PAGE = 60;
+const MAX_TURNS = 6;
+const MAX_TURN_TEXT = 500;
 const UPSTREAM_TIMEOUT_MS = 9000;
 const MAX_REPLY = 1000;
 
@@ -37,13 +42,36 @@ function readBody(req: IncomingMessage): Promise<string | null> {
   });
 }
 
-function parseRequest(raw: string): { text: string; page: string } | null {
+const turnText = (v: unknown): string | null => {
+  if (typeof v !== 'string') return null;
+  const t = v.trim();
+  return t.length >= 1 && t.length <= MAX_TURN_TEXT ? t : null;
+};
+
+/** Missing → []; anything else must be ≤ 6 objects with exactly { user, assistant }, each 1–500 chars trimmed. */
+function parseHistory(v: unknown): ConversationTurn[] | null {
+  if (v === undefined) return [];
+  if (!Array.isArray(v) || v.length > MAX_TURNS) return null;
+  const turns: ConversationTurn[] = [];
+  for (const item of v) {
+    if (!isRecord(item) || Array.isArray(item) || Object.keys(item).length !== 2) return null;
+    const user = turnText(item.user);
+    const assistant = turnText(item.assistant);
+    if (user === null || assistant === null) return null;
+    turns.push({ user, assistant });
+  }
+  return turns;
+}
+
+function parseRequest(raw: string): { text: string; page: string; history: ConversationTurn[] } | null {
   try {
     const body: unknown = JSON.parse(raw);
     if (!isRecord(body) || typeof body.text !== 'string' || typeof body.page !== 'string') return null;
     const text = body.text.trim();
     if (text.length < 1 || text.length > MAX_TEXT || body.page.length > MAX_PAGE) return null;
-    return { text, page: body.page };
+    const history = parseHistory(body.history);
+    if (!history) return null;
+    return { text, page: body.page, history };
   } catch {
     return null;
   }
@@ -85,7 +113,7 @@ export async function handleAssist(req: IncomingMessage, res: ServerResponse, en
   const provider = env.AI_PROVIDER;
   const signal = AbortSignal.timeout(UPSTREAM_TIMEOUT_MS);
   try {
-    const result = await createAssistAgent(model).generate({ prompt: input.text, abortSignal: signal });
+    const result = await createAssistAgent(model, input.history).generate({ prompt: input.text, abortSignal: signal });
     const parsed = assistOutputSchema.safeParse(result.output);
     if (!parsed.success) return fail(res, 502, 'upstream', { provider, steps: result.steps.length });
     // fixed code only: the route text is model output and may echo the user's words
@@ -94,7 +122,7 @@ export async function handleAssist(req: IncomingMessage, res: ServerResponse, en
     const reply = parsed.data.kind === 'reply' ? (parsed.data.reply ?? '').trim().slice(0, MAX_REPLY) : null;
     if (parsed.data.kind === 'reply' && !reply)
       return fail(res, 502, 'upstream', { provider, steps: result.steps.length, reason: 'empty_reply' });
-    console.warn('[ai-assist]', 200, { provider, steps: result.steps.length });
+    console.warn('[ai-assist]', 200, { provider, steps: result.steps.length, turns: input.history.length });
     send(res, 200, { ...parsed.data, reply });
   } catch (err) {
     if (signal.aborted) return fail(res, 504, 'timeout', { provider });

@@ -10,7 +10,7 @@ import { Button } from '@/shared/ui/button';
 import { Label } from '@/shared/ui/label';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
 import { Textarea } from '@/shared/ui/textarea';
-import { askAssistant, type AiResult } from './assistant';
+import { askAssistant, buildHistory, type AiResult } from './assistant';
 
 interface Message {
   id: number;
@@ -43,11 +43,12 @@ export function AiPanel({ me, open, onOpenChange }: { me: User; open: boolean; o
     const input = text.trim();
     if (!input || busy) return;
     const id = nextId.current++;
+    const history = buildHistory(messages, d); // before the new message is appended
     setMessages((m) => [...m, { id, text: input, result: null, notice: null }]);
     setText('');
     setBusy(true);
     try {
-      const answer = await askAssistant(input, pageNameOf(pathname));
+      const answer = await askAssistant(input, pageNameOf(pathname), history);
       setMessages((m) => m.map((x) => (x.id === id ? { ...x, result: answer.result, notice: answer.notice } : x)));
     } finally {
       setBusy(false);

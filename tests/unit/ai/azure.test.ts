@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { APP_ERROR_MESSAGES } from '@/domain/types';
+import type { AiTurn } from '@/features/ai-assistant/assistant';
 import { STATIC_ROUTES } from '@/features/ai-assistant/ruleBased';
 import { APP_STATIC_ROUTES } from '../../../server/aiAssist';
 
@@ -7,9 +8,9 @@ const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200, 
 const out = (o: Partial<Record<'kind' | 'serviceDefinitionId' | 'route' | 'summary' | 'reply', string | null>>) =>
   ok({ kind: 'unknown', serviceDefinitionId: null, route: null, summary: null, reply: null, ...o });
 
-async function ask(text = 'เมาส์เสีย คลิกไม่ติด') {
+async function ask(text = 'เมาส์เสีย คลิกไม่ติด', history: AiTurn[] = []) {
   const { askAssistant } = await import('@/features/ai-assistant/assistant');
-  return askAssistant(text, 'My Space');
+  return askAssistant(text, 'My Space', history);
 }
 
 describe('AzureAssistant via askAssistant (VITE_AI_MODE=azure)', () => {
@@ -25,7 +26,7 @@ describe('AzureAssistant via askAssistant (VITE_AI_MODE=azure)', () => {
     vi.restoreAllMocks();
   });
 
-  it('sends only text + page and maps a valid draft with template defaults', async () => {
+  it('sends only text + page + history and maps a valid draft with template defaults', async () => {
     vi.mocked(fetch).mockResolvedValue(out({ kind: 'draft', serviceDefinitionId: 'sdf_002', summary: 'Mouse ใช้งานไม่ได้' }));
     const answer = await ask(' เมาส์ <b>เสีย</b> ');
     expect(answer).toEqual({
@@ -40,7 +41,14 @@ describe('AzureAssistant via askAssistant (VITE_AI_MODE=azure)', () => {
     });
     const [url, init] = vi.mocked(fetch).mock.calls[0]!;
     expect(url).toBe('/api/ai/assist');
-    expect(JSON.parse(init!.body as string)).toEqual({ text: 'เมาส์ <b>เสีย</b>', page: 'My Space' });
+    expect(JSON.parse(init!.body as string)).toEqual({ text: 'เมาส์ <b>เสีย</b>', page: 'My Space', history: [] });
+  });
+
+  it('sends the panel history as passed', async () => {
+    vi.mocked(fetch).mockResolvedValue(out({ kind: 'reply', reply: 'ได้ครับ' }));
+    const history: AiTurn[] = [{ user: 'เมาส์เสีย', assistant: 'ร่างเรื่อง: Mouse - Incident (sdf_002)' }];
+    await ask('ต้องทำอะไรต่อ', history);
+    expect(JSON.parse(vi.mocked(fetch).mock.calls[0]![1]!.body as string)).toEqual({ text: 'ต้องทำอะไรต่อ', page: 'My Space', history });
   });
 
   it('uses the user text as summary when the model gives none', async () => {

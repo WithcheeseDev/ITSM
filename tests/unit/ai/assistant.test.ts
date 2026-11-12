@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { APP_ERROR_MESSAGES } from '@/domain/types';
+import { buildHistory, type AiResult } from '@/features/ai-assistant/assistant';
 import { RuleBasedAssistant } from '@/features/ai-assistant/ruleBased';
 import { buildDataset } from '../../fixtures';
 
@@ -72,5 +73,49 @@ describe('askAssistant', () => {
     const logged = JSON.stringify(vi.mocked(console.warn).mock.calls);
     expect(logged).toContain('ai.fallback');
     expect(logged).not.toContain('0811111111');
+  });
+});
+
+describe('buildHistory', () => {
+  const ds = buildDataset();
+  const reply = (text: string): AiResult => ({ kind: 'reply', text });
+
+  it('skips pending turns (result null)', () => {
+    expect(buildHistory([{ text: 'a', result: reply('A') }, { text: 'b', result: null }], ds)).toEqual([{ user: 'a', assistant: 'A' }]);
+  });
+
+  it('keeps the last 6 answered turns, oldest first', () => {
+    const turns = Array.from({ length: 8 }, (_, i) => ({ text: `q${i}`, result: reply(`a${i}`) }));
+    expect(buildHistory(turns, ds).map((t) => t.user)).toEqual(['q2', 'q3', 'q4', 'q5', 'q6', 'q7']);
+  });
+
+  it('describes each result kind', () => {
+    const turns = [
+      { text: 'เมาส์เสีย', result: { kind: 'draft', draft: { serviceDefinitionId: 'sdf_002', summary: 'คลิกไม่ติด' } } },
+      { text: 'เมาส์', result: { kind: 'draft', draft: { serviceDefinitionId: 'sdf_002', summary: ' ' } } },
+      { text: 'ค้นหา', result: { kind: 'navigate', route: '/calls/search' } },
+      { text: 'ไปไหน', result: { kind: 'navigate', route: '/nowhere' } },
+      { text: 'สวัสดี', result: reply(' สวัสดีครับ ') },
+      { text: '???', result: { kind: 'unknown' } },
+    ] satisfies Array<{ text: string; result: AiResult }>;
+    expect(buildHistory(turns, ds).map((t) => t.assistant)).toEqual([
+      'ร่างเรื่อง: Mouse - Incident (sdf_002) — คลิกไม่ติด',
+      'ร่างเรื่อง: Mouse - Incident (sdf_002)',
+      'พาไปหน้า ค้นหาเรื่อง (/calls/search)',
+      'พาไปหน้า /nowhere',
+      'สวัสดีครับ',
+      'ไม่เข้าใจคำขอ',
+    ]);
+  });
+
+  it('falls back to the id when the service is not found', () => {
+    const [t] = buildHistory([{ text: 'x', result: { kind: 'draft', draft: { serviceDefinitionId: 'sdf_999' } } }], ds);
+    expect(t!.assistant).toBe('ร่างเรื่อง: sdf_999 (sdf_999)');
+  });
+
+  it('slices a long Thai reply to 500 chars and drops a turn with an empty side', () => {
+    const [t, ...rest] = buildHistory([{ text: 'ยาว', result: reply('ก'.repeat(600)) }, { text: '   ', result: reply('x') }], ds);
+    expect(t!.assistant).toHaveLength(500);
+    expect(rest).toEqual([]);
   });
 });

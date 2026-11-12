@@ -6,7 +6,7 @@
 import { ROUTES } from '@/app/routes';
 import type { Dataset, ServiceDefinition } from '@/domain/types';
 import { MAX_SUMMARY } from '@/features/calls/callService';
-import type { AiAssistant, AiDraft, AiResult } from './assistant';
+import type { AiAssistant, AiDraft, AiResult, AiTurn } from './assistant';
 
 /** Real pages an assistant may navigate to (shared with the Azure adapter). */
 export const STATIC_ROUTES: ReadonlySet<string> = new Set(Object.values(ROUTES).map((r) => r.path).filter((p) => !p.includes(':')));
@@ -33,7 +33,7 @@ export function buildDraft(
 export class RuleBasedAssistant implements AiAssistant {
   constructor(private readonly dataset: Pick<Dataset, 'ai' | 'serviceDefinitions' | 'templates'>) {}
 
-  async suggest(text: string, _pageName: string): Promise<AiResult> {
+  async suggest(text: string, _pageName: string, _history: AiTurn[] = []): Promise<AiResult> {
     const input = text.trim();
     const lower = input.toLowerCase();
     if (!lower) return { kind: 'unknown' };

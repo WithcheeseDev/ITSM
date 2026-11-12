@@ -215,3 +215,7 @@ Dependency graph ไม่มี cycle: domain (C3, C4) ไม่พึ่ง fe
 2. ผู้ใช้กรอก → Zod validate → C4 แสดง priority preview
 3. OK → C8 `createCall`: C3 `can(call:create)` → C4 priority, initialStatus, dueDate (หรือรออนุมัติ), nextNumber → C14 `createApprovals` (ถ้ามี) → C10 `commit({calls, history, approvals, runningNumber})`
 4. นำทางไป `/calls/:id` + toast เลข ticket
+
+
+## Add-on
+- **2026-11-14 (C15 memory)** — Key decision 1 เปลี่ยนเป็น: ส่ง `text` + `pageName` + `history` (≤ 6 รอบของแผงนี้, ไม่มีข้อมูลส่วนบุคคลของผู้ใช้) · `AiAssistant.suggest(text, pageName, history)` · ดู integration.md Add-on 2026-11-14

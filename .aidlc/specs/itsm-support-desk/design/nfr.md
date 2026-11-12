@@ -53,3 +53,7 @@ N/A — ข้อมูลอยู่ใน memory + localStorage อยู่�
 
 ## CI/CD & Deployment
 [TBD - not decided in D3] — deploy เป็น optional ลำดับสุดท้ายตามนโยบาย
+
+
+## Add-on
+- **2026-11-14** — Compliance: AI ส่งข้อความ + ชื่อหน้า + ประวัติสนทนาในแผง (≤ 6 รอบ) · server ไม่เก็บ ไม่ log ประวัติ · ยังไม่ส่ง user id / ชื่อ / อีเมล / เบอร์

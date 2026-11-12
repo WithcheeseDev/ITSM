@@ -4,7 +4,7 @@ import { MockLanguageModelV4 } from 'ai/test';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAssistAgent } from '../../../server/ai/agent';
 import { ConfigMissingError, resolveModel, stallRetryFetch, type AiEnv } from '../../../server/ai/model';
-import { findServices } from '../../../server/ai/tools';
+import { createAssistTools, findServices } from '../../../server/ai/tools';
 import { handleAssist } from '../../../server/aiAssist';
 
 // Partial mock: the real resolveModel runs unless a test overrides one call; ConfigMissingError stays the same class
@@ -59,6 +59,15 @@ describe('tools', () => {
     expect(findServices('ขอ')).toHaveLength(10); // 49 seed hits, capped
     expect(findServices('zzqx-nothing')).toEqual([]);
     expect(findServices('เมาส์').map((s) => s.id)).toContain('sdf_002'); // Thai via fallback keywords
+  });
+
+  it('recallConversation exists only with history and returns the turns', async () => {
+    expect(createAssistTools([])).not.toHaveProperty('recallConversation');
+    const turns = [{ user: 'เมาส์เสีย', assistant: 'ร่างคำขอ Mouse' }];
+    const tools = createAssistTools(turns);
+    expect(Object.keys(tools)).toEqual(['searchServices', 'searchPages', 'recallConversation']);
+    if (!('recallConversation' in tools)) throw new Error('missing');
+    expect(await tools.recallConversation.execute!({}, { toolCallId: 't', messages: [], context: {} })).toEqual({ turns });
   });
 });
 
@@ -126,7 +135,7 @@ describe('handleAssist', () => {
     expect((await call(post({ text: '   ', page: 'x' }))).status).toBe(400);
     expect((await call(post({ text: 'a'.repeat(1001), page: 'x' }))).status).toBe(400);
     expect((await call(post({ text: 'a', page: 'x'.repeat(61) }))).status).toBe(400);
-    expect((await call(fakeReq('POST', 'x'.repeat(9000)))).status).toBe(400);
+    expect((await call(fakeReq('POST', 'x'.repeat(33 * 1024)))).status).toBe(400);
     expect(await call(post({ text: 'a', page: 'x' }), { ...AZURE, AZURE_AI_KEY: '' })).toEqual({ status: 500, body: { error: 'config_missing' } });
     expect(await call(post({ text: 'a', page: 'x' }), { ...AZURE, AI_PROVIDER: 'nope' })).toEqual({ status: 500, body: { error: 'config_missing' } });
     expect(fetch).not.toHaveBeenCalled();
@@ -153,6 +162,49 @@ describe('handleAssist', () => {
     const logged = JSON.stringify(vi.mocked(console.warn).mock.calls);
     expect(logged).toContain('empty_reply');
     expect(logged).not.toMatch(/REPLY-SECRET|สวัสดี|stray/);
+  });
+
+  it('history: trimmed turns reach the agent via recallConversation; missing = no tool; never logged', async () => {
+    const NAV = { kind: 'navigate', serviceDefinitionId: null, route: '/approvals', summary: null, reply: null } as const;
+    const recallStep = toolCallStep('', 'recallConversation');
+    recallStep.content[0]!.input = '{}';
+    const withHistory = mockModel(recallStep, textStep(JSON.stringify(NAV)));
+    useModel(withHistory);
+    const history = [{ user: '  HIST-USER เมาส์เสีย  ', assistant: ' HIST-ASSIST ร่างคำขอ Mouse ' }];
+    expect(await call(post({ text: 'แล้วคีย์บอร์ดล่ะ', page: 'x', history }))).toEqual({ status: 200, body: NAV });
+    expect(withHistory.doGenerateCalls[0]!.tools?.map((t) => t.name)).toContain('recallConversation');
+    const step2 = JSON.stringify(withHistory.doGenerateCalls[1]!.prompt);
+    expect(step2).toContain('"user":"HIST-USER เมาส์เสีย"');
+    expect(step2).toContain('"assistant":"HIST-ASSIST ร่างคำขอ Mouse"');
+
+    const noHistory = mockModel(textStep(JSON.stringify(NAV)));
+    useModel(noHistory);
+    expect((await call(post({ text: 'a', page: 'x' }))).status).toBe(200);
+    expect(noHistory.doGenerateCalls[0]!.tools?.map((t) => t.name)).not.toContain('recallConversation');
+
+    const logged = JSON.stringify(vi.mocked(console.warn).mock.calls);
+    expect(logged).toContain('"turns":1');
+    expect(logged).not.toMatch(/HIST-USER|HIST-ASSIST|เมาส์|คีย์บอร์ด/);
+  });
+
+  it('history: 400 for bad shapes, accepts a ~20KB Thai body', async () => {
+    const turn = { user: 'u', assistant: 'a' };
+    const bad = async (history: unknown) => (await call(post({ text: 'a', page: 'x', history }))).status;
+    expect(await bad(Array(7).fill(turn))).toBe(400);
+    expect(await bad([{ ...turn, extra: 1 }])).toBe(400);
+    expect(await bad([{ user: '   ', assistant: 'a' }])).toBe(400);
+    expect(await bad([{ user: '', assistant: 'a' }])).toBe(400);
+    expect(await bad([{ user: 'u', assistant: 'a'.repeat(501) }])).toBe(400);
+    expect(await bad([{ user: 'u' }])).toBe(400);
+    expect(await bad(turn)).toBe(400);
+    expect(await bad('u')).toBe(400);
+    expect(await bad(null)).toBe(400);
+    expect(fetch).not.toHaveBeenCalled();
+
+    const big = { text: 'ข'.repeat(1000), page: 'x', history: Array(6).fill({ user: 'ก'.repeat(500), assistant: 'ค'.repeat(500) }) };
+    expect(Buffer.byteLength(JSON.stringify(big))).toBeGreaterThan(20 * 1024);
+    useModel(mockModel(textStep(JSON.stringify({ kind: 'unknown', serviceDefinitionId: null, route: null, summary: null, reply: null }))));
+    expect((await call(post(big))).status).toBe(200);
   });
 
   it('502 on invalid model output', async () => {

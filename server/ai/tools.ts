@@ -35,15 +35,32 @@ export function findServices(query: string): ServiceHit[] {
     .map(({ s }) => ({ id: s.id, name: s.name, description: s.description }));
 }
 
-export const assistTools = {
-  searchServices: tool({
-    description: 'Search the service catalog. Returns up to 10 services { id, name, description }. Use short keywords (Thai or English).',
-    inputSchema: z.object({ query: z.string().min(1).max(100) }),
-    execute: async ({ query }) => findServices(query),
-  }),
-  searchPages: tool({
-    description: "Find which page of the portal answers the user's need (where to go / how to do something). Returns up to 3 pages { route, title, purpose, params }. Pass the user's words (Thai or English).",
-    inputSchema: z.object({ query: z.string().min(1).max(100) }),
-    execute: async ({ query }) => searchPages(query),
-  }),
-};
+export interface ConversationTurn {
+  user: string;
+  assistant: string;
+}
+
+/** Per-request tools; recallConversation exists only when the browser sent earlier turns (never stored server-side). */
+export function createAssistTools(history: ConversationTurn[]) {
+  const base = {
+    searchServices: tool({
+      description: 'Search the service catalog. Returns up to 10 services { id, name, description }. Use short keywords (Thai or English).',
+      inputSchema: z.object({ query: z.string().min(1).max(100) }),
+      execute: async ({ query }) => findServices(query),
+    }),
+    searchPages: tool({
+      description: "Find which page of the portal answers the user's need (where to go / how to do something). Returns up to 3 pages { route, title, purpose, params }. Pass the user's words (Thai or English).",
+      inputSchema: z.object({ query: z.string().min(1).max(100) }),
+      execute: async ({ query }) => searchPages(query),
+    }),
+  };
+  if (history.length === 0) return base;
+  return {
+    ...base,
+    recallConversation: tool({
+      description: 'Earlier turns of this chat, oldest first: what the user wrote and a summary of what the assistant answered. Call it when the message refers to an earlier turn.',
+      inputSchema: z.object({}),
+      execute: async () => ({ turns: history }),
+    }),
+  };
+}

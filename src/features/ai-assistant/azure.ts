@@ -1,11 +1,11 @@
 /**
  * Azure AI Foundry adapter (integration.md Add-on 2026-11-13): POST /api/ai/assist → Vite middleware → Azure.
- * The browser sends only { text, page } (FR-114). Any HTTP error, timeout or bad shape throws → caller falls back.
+ * The browser sends only { text, page, history } (FR-114: history = prior panel turns, no name / email / phone). Any HTTP error, timeout or bad shape throws → caller falls back.
  * An id / route that does not exist in this app, or a reply with no text, counts as bad output → fallback (never trust the model's ids blindly).
  */
 import { z } from 'zod';
 import type { Dataset } from '@/domain/types';
-import type { AiAssistant, AiResult } from './assistant';
+import type { AiAssistant, AiResult, AiTurn } from './assistant';
 import { buildDraft, STATIC_ROUTES } from './ruleBased';
 
 const CLIENT_TIMEOUT_MS = 10_000;
@@ -21,12 +21,12 @@ const assistOutputSchema = z.object({
 export class AzureAssistant implements AiAssistant {
   constructor(private readonly dataset: Pick<Dataset, 'serviceDefinitions' | 'templates'>) {}
 
-  async suggest(text: string, pageName: string): Promise<AiResult> {
+  async suggest(text: string, pageName: string, history: AiTurn[] = []): Promise<AiResult> {
     const input = text.trim();
     const res = await fetch('/api/ai/assist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: input, page: pageName }),
+      body: JSON.stringify({ text: input, page: pageName, history }),
       signal: AbortSignal.timeout(CLIENT_TIMEOUT_MS),
     });
     if (!res.ok) throw new Error('upstream');

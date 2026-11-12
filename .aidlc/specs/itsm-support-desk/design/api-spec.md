@@ -165,3 +165,12 @@ resetToSeed(): void;
 { "kind": "draft", "serviceDefinitionId": "sdf_002", "route": null, "summary": "Mouse ใช้งานไม่ได้", "reply": null }
 ```
 - kind `reply` ที่ `reply` ว่าง → `502` · request / error code อื่นคงเดิม · ดู integration.md Add-on "คุยคำถามทั่วไป"
+
+### 2026-11-14 — §2 request เพิ่ม `history`
+```json
+{ "text": "เปลี่ยนเป็นคีย์บอร์ดแทน", "page": "My Space",
+  "history": [ { "user": "เมาส์เสีย", "assistant": "ร่างเรื่อง: Mouse (sdf_002) — Mouse ใช้งานไม่ได้" } ] }
+```
+- `history` ไม่บังคับ (ไม่ส่ง = `[]`) · array ≤ 6 รายการ เก่า → ใหม่ · แต่ละรายการ `{ user, assistant }` เป็น string ยาว 1–500 ตัวอักษรหลัง trim · key อื่นในรายการ → `400` · ผิดเงื่อนไขใด → `400 bad_request`
+- body cap 8KB → 32KB (ภาษาไทย 3 byte/ตัว: 6 × 1000 ตัว + text ≈ 21KB)
+- response / error code คงเดิม · ดู integration.md Add-on "Memory: tool recallConversation"
