@@ -1,0 +1,104 @@
+version: "1.0.0"
+feature: "itsm-support-desk"
+language: "th"
+platform: "claude-code"
+created: "2026-11-11T16:30:34Z"
+updated: "2026-11-13T04:30:00Z"
+state:
+  status: "active"
+  scope: "new"
+  sharedPhases: [context, requirements, design, tasks, build]
+  mode: "comprehensive"
+  foundationSkipped: false
+  implementationMode: "standard"
+  quickPath: false
+artifacts:
+  context:
+    status: "approved"
+    timestamp: "2026-11-11T16:35:00Z"
+    files: [context.md]
+  requirements:
+    status: "approved"
+    timestamp: "2026-11-11T17:00:00Z"
+    files: [requirements.md, personas.md]
+  design:
+    status: "approved"
+    timestamp: "2026-11-11T18:00:00Z"
+    files: [design.md, design/components.md, design/data-model.md, design/api-spec.md, design/integration.md, design/implementation.md, design/operations.md, design/testing-strategy.md, design/correctness.md, design/nfr.md]
+    extra: [.claude/rules/design-system.md, src/styles/tokens.css]
+  tasks:
+    status: "approved"
+    timestamp: "2026-11-12T09:30:00Z"
+    files: [tasks.md]
+  build:
+    status: "approved-with-warnings"
+    timestamp: "2026-11-13T04:30:00Z"
+    files: [build-report.md]
+implementation:
+  totalTasks: 32
+  completedTasks: 31
+  currentTask: null
+  currentWave: null
+context-summary:
+  type: "Greenfield"
+  scope: "new"
+  stack: "TypeScript / React + Vite"
+  architecture: "SPA client-only + dev proxy for Azure agent (pending D3)"
+  feature: "ITSM Support Desk: report Incident / Service Request / RFC via Service Catalog or direct form, track status by SLA, 2-step approval"
+  impact: "New standalone"
+  complexity: "High"
+  teamSize: 1
+  recommendations: { personas: true, units: false, nfr: true }
+decisions:
+  requirements:
+    releaseScope: "Must + Should"
+    personas: "Yes - 4"
+    teamSize: "Solo (1)"
+    priorityMatrix: "database.json priorityMatrix + rfcPriorityMatrix"
+    sla: "database.json slaHoursByPriority (P1=4h,P2=8h,P3=24h,P4=72h), 24x7"
+    slaStart: "per-category slaStartsAfterApproval"
+    stateMachine: "draft section 4.4"
+    reopenWindowDays: 7
+    autoClose: "on load after reopen window"
+    agentVisibility: "own groups queues"
+    adminScope: "no admin UI, read-only all calls"
+    aiAssistant: "interface + rule-based mock, Azure later"
+    attachments: "metadata only"
+    audit: "per-call timeline"
+    uiLanguage: "Thai, ITIL terms English"
+  design:
+    language: "TypeScript strict"
+    dataLayer: "Repository on localStorage"
+    state: "Zustand + persist"
+    routing: "React Router"
+    ui: "Tailwind v4 + shadcn/ui on CSS variables"
+    forms: "React Hook Form + Zod"
+    richText: "Tiptap + DOMPurify"
+    aiProxy: "Vite dev proxy, key in .env.local"
+    codeOrg: "feature-based + domain + data"
+    testing: "Vitest + Testing Library + Playwright smoke"
+    pbt: "fast-check"
+    observability: "Minimal"
+    errorTracking: "Log-based"
+    lifecycle: "None"
+    brandColor: "Indigo primary + teal accent, warm neutral"
+    typography: "IBM Plex Sans Thai + IBM Plex Sans"
+  tasks:
+    breakdown: "policy groups, features by dependency"
+    approach: "domain unit tests inline; UI/E2E/PBT in test phase"
+    priority: "shell+data+domain → requestor → agent → approvals → AI"
+    aiIntegration: "rule-based first; Azure adapter blocked until contract"
+    testingTasks: "PBT 12 + service unit + component + E2E 3 flows + a11y/responsive"
+    granularity: "single-concern with Files/Deps/Validate"
+    parallel: "sequential, stop each phase"
+    deploy: "skip"
+versions:
+  resolved_at: "2026-11-11"
+  source: "web-search"
+  map: { node: "22 LTS", react: "19.3.1", vite: "8.3.8", typescript: "6.0.3", react-router: "8.5.1", zustand: "5.1.0", tailwindcss: "4.3.5", react-hook-form: "7.92.0", zod: "4.6.7", "@hookform/resolvers": "5.9.2", "@tiptap/react": "3.33.1", dompurify: "3.4.17", lucide-react: "1.72.0", vitest: "4.1.12", "@testing-library/react": "16.3.3", fast-check: "4.10.2", "@playwright/test": "1.65.0", "@fontsource/ibm-plex-sans-thai": "5.3.0" }
+steering:
+  updatedBy:
+    product: [context, requirements]
+    tech: [context, design]
+    structure: [context, design]
+units: []

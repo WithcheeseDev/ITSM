@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="ITSM Support Desk">
+  <rect width="32" height="32" rx="8" fill="#3b4cca"/>
+  <path d="M9 10.5h14a1.5 1.5 0 0 1 1.5 1.5v2.25a2 2 0 0 0 0 3.5V20a1.5 1.5 0 0 1-1.5 1.5H9A1.5 1.5 0 0 1 7.5 20v-2.25a2 2 0 0 0 0-3.5V12A1.5 1.5 0 0 1 9 10.5Z" fill="none" stroke="#ffffff" stroke-width="1.75" stroke-linejoin="round"/>
+  <path d="m12.75 16 2.25 2.25 4.25-4.5" fill="none" stroke="#ffffff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

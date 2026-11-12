@@ -1,0 +1,318 @@
+{
+  "_meta": {
+    "app": "IT-01 ITSM Support Desk",
+    "version": 1,
+    "note": "Mock data for workshop only. All people, emails, ticket numbers, services and organizations are fictional.",
+    "dateFormat": "ISO 8601 (YYYY-MM-DDTHH:mm:ss+07:00)",
+    "currentDate": "2026-11-11T09:00:00+07:00"
+  },
+  "enums": {
+    "callTypes": ["Incident", "Problem", "Change (RFC)", "Request Fulfilment (ITSR)", "Service Requests"],
+    "classifications": ["Service Request", "n/a"],
+    "urgency": {
+      "standard": ["1-Critical", "2-High", "3-Medium", "4-Low"],
+      "rfc": ["RFC - Major", "RFC - Medium", "RFC - Minor"]
+    },
+    "impact": {
+      "standard": ["1-Extensive/Widespread", "2-Significant/Large", "3-Moderate/Limited", "4-Minor/Localized"],
+      "rfc": ["RFC - Very High", "RFC - High", "RFC - Medium", "RFC - Low", "RFC - Very Low"]
+    },
+    "statusByCallType": {
+      "Incident": ["New", "Assigned", "In Process", "Pending", "Resolved", "Re-Opened", "Closed", "Cancelled"],
+      "Service Requests": ["Request Submitted", "Waiting For Approve", "Department Accepted", "Department Declined", "Head Approved", "Head Rejected", "Request In-Progress", "Request Completed", "Request Cancelled", "Closed"],
+      "Change (RFC)": ["Draft", "Request For Change", "Under Review", "Ready for CAB", "Scheduled for Review", "Implementation", "Completed", "Failed", "Closed", "Cancelled"],
+      "Problem": ["New", "Root Cause Identify", "Known Error", "Resolution Identify", "Monitoring", "Closed"],
+      "Request Fulfilment (ITSR)": ["Request Submitted", "Request In-Progress", "Delivered", "Waiting for return", "Request Completed", "Closed"]
+    },
+    "closedStatuses": ["Closed", "Cancelled", "Request Cancelled", "Request Completed", "Completed", "Failed", "Department Declined", "Head Rejected"],
+    "activityTypes": ["CAB Meeting", "Change Freeze Window", "Deployment Dates", "Standard Task", "System Down Dates"],
+    "activityStatuses": ["Staged", "Assigned", "Closed"],
+    "approvalTypes": ["Department approval", "Head approval"],
+    "approvalDecisions": ["pending", "approved", "rejected"],
+    "closureCategories": ["Fixed", "Replaced Hardware", "User Training", "Workaround Provided", "No Fault Found", "Duplicate"],
+    "feedbackCategories": ["Speed", "Quality", "Communication", "Other"],
+    "roles": ["requestor", "approver", "agent", "admin"]
+  },
+  "priorityMatrix": {
+    "_note": "Assumption [ASM] — Urgency x Impact -> Priority. Key = urgency number + impact number.",
+    "1-1": "P1", "1-2": "P1", "1-3": "P2", "1-4": "P2",
+    "2-1": "P1", "2-2": "P2", "2-3": "P3", "2-4": "P3",
+    "3-1": "P2", "3-2": "P3", "3-3": "P3", "3-4": "P4",
+    "4-1": "P3", "4-2": "P3", "4-3": "P4", "4-4": "P4"
+  },
+  "rfcPriorityMatrix": {
+    "_note": "Assumption [ASM] — RFC urgency x RFC impact -> Priority.",
+    "RFC - Major": "P1", "RFC - Medium": "P2", "RFC - Minor": "P3"
+  },
+  "slaHoursByPriority": {
+    "_note": "Assumption [ASM] — resolution target from openDate (or from Head approval when category slaStartsAfterApproval = true).",
+    "P1": 4, "P2": 8, "P3": 24, "P4": 72
+  },
+  "organizations": [
+    { "id": "org_001", "name": "Example Corp" }
+  ],
+  "locations": [
+    { "id": "loc_001", "name": "สำนักงานใหญ่ ชั้น 10" },
+    { "id": "loc_002", "name": "สำนักงานใหญ่ ชั้น 15" },
+    { "id": "loc_003", "name": "สาขาตัวอย่าง A" }
+  ],
+  "groups": [
+    { "id": "grp_001", "name": "Service Desk", "queueId": "que_001" },
+    { "id": "grp_002", "name": "End User Computing", "queueId": "que_002" },
+    { "id": "grp_003", "name": "Application Support", "queueId": "que_003" },
+    { "id": "grp_004", "name": "Network Operation", "queueId": "que_004" },
+    { "id": "grp_005", "name": "Change Management", "queueId": "que_005" }
+  ],
+  "queues": [
+    { "id": "que_001", "name": "Service Desk - L1", "groupId": "grp_001" },
+    { "id": "que_002", "name": "EUC - Hardware", "groupId": "grp_002" },
+    { "id": "que_003", "name": "App Support - L2", "groupId": "grp_003" },
+    { "id": "que_004", "name": "Network - L2", "groupId": "grp_004" },
+    { "id": "que_005", "name": "Change Advisory", "groupId": "grp_005" }
+  ],
+  "users": [
+    { "id": "usr_001", "name": "สมชาย ใจดี", "email": "somchai.j@example.com", "phone": "0811111111", "role": "requestor", "groupIds": [], "organizationId": "org_001", "locationId": "loc_001", "department": "ฝ่ายการตลาด", "managerId": "usr_004", "vvip": false },
+    { "id": "usr_002", "name": "มาลี สุขสันต์", "email": "malee.s@example.com", "phone": "0822222222", "role": "requestor", "groupIds": [], "organizationId": "org_001", "locationId": "loc_003", "department": "ฝ่ายปฏิบัติการสาขา", "managerId": "usr_004", "vvip": false },
+    { "id": "usr_003", "name": "วิชัย ผู้บริหาร", "email": "wichai.p@example.com", "phone": "0833333333", "role": "requestor", "groupIds": [], "organizationId": "org_001", "locationId": "loc_002", "department": "สำนักกรรมการผู้จัดการ", "managerId": null, "vvip": true },
+    { "id": "usr_004", "name": "ปรีชา หัวหน้า", "email": "preecha.h@example.com", "phone": "0844444444", "role": "approver", "groupIds": [], "organizationId": "org_001", "locationId": "loc_001", "department": "ฝ่ายการตลาด", "managerId": "usr_005", "vvip": false, "approvalTypes": ["Department approval"] },
+    { "id": "usr_005", "name": "อรุณี ผู้อำนวยการ", "email": "arunee.d@example.com", "phone": "0855555555", "role": "approver", "groupIds": [], "organizationId": "org_001", "locationId": "loc_002", "department": "สายงานธุรกิจ", "managerId": null, "vvip": false, "approvalTypes": ["Head approval"] },
+    { "id": "usr_006", "name": "ธนา เจ้าหน้าที่", "email": "thana.a@example.com", "phone": "0866666666", "role": "agent", "groupIds": ["grp_001", "grp_002"], "organizationId": "org_001", "locationId": "loc_001", "department": "ฝ่ายเทคโนโลยีสารสนเทศ", "managerId": null, "vvip": false },
+    { "id": "usr_007", "name": "กมล นักพัฒนา", "email": "kamol.d@example.com", "phone": "0877777777", "role": "agent", "groupIds": ["grp_003", "grp_005"], "organizationId": "org_001", "locationId": "loc_001", "department": "ฝ่ายเทคโนโลยีสารสนเทศ", "managerId": null, "vvip": false },
+    { "id": "usr_008", "name": "ผู้ดูแล ระบบ", "email": "admin@example.com", "phone": "0888888888", "role": "admin", "groupIds": [], "organizationId": "org_001", "locationId": "loc_001", "department": "ฝ่ายเทคโนโลยีสารสนเทศ", "managerId": null, "vvip": false }
+  ],
+  "rolePermissions": {
+    "requestor": ["call:create", "call:view_own", "call:create_on_behalf", "call:comment_own", "call:cancel_own", "call:reopen_own", "call:survey_own", "catalog:view", "answers:view", "ai:use"],
+    "approver": ["call:create", "call:view_own", "call:create_on_behalf", "call:comment_own", "call:cancel_own", "call:reopen_own", "call:survey_own", "catalog:view", "answers:view", "ai:use", "approval:decide_assigned", "approval:view_assigned"],
+    "agent": ["call:create", "call:view_own", "call:create_on_behalf", "call:comment_own", "catalog:view", "answers:view", "ai:use", "call:view_group", "call:assign", "call:change_status", "call:comment_any", "activity:manage"],
+    "admin": ["call:create", "call:view_own", "call:create_on_behalf", "catalog:view", "answers:view", "ai:use", "call:view_all", "catalog:manage", "template:manage", "user:manage"]
+  },
+  "products": [
+    { "id": "prd_001", "name": "Notebook รุ่นมาตรฐาน", "category": "Hardware", "serialNumber": "SN-NB-0001", "version": "Gen 3", "assignedToId": "usr_001" },
+    { "id": "prd_002", "name": "Notebook รุ่นมาตรฐาน", "category": "Hardware", "serialNumber": "SN-NB-0002", "version": "Gen 3", "assignedToId": "usr_002" },
+    { "id": "prd_003", "name": "Passbook Printer", "category": "Hardware", "serialNumber": "SN-PB-0101", "version": "v2", "assignedToId": "usr_002" },
+    { "id": "prd_004", "name": "ระบบ CRM ตัวอย่าง", "category": "Application", "serialNumber": null, "version": "5.2", "assignedToId": null }
+  ],
+  "items": [
+    { "id": "itm_001", "productId": "prd_004", "name": "โมดูลรายงาน" },
+    { "id": "itm_002", "productId": "prd_004", "name": "โมดูลลูกค้า" }
+  ],
+  "services": [
+    { "id": "svc_001", "name": "End User Device Support" },
+    { "id": "svc_002", "name": "Business Application" },
+    { "id": "svc_003", "name": "Network & Connectivity" },
+    { "id": "svc_004", "name": "Facility" }
+  ],
+  "serviceCategories": [
+    { "id": "cat_001", "parentId": null, "name": "Request a Service", "description": "ขอใช้งานบริการต่าง ๆ", "icon": "ClipboardList", "slaNote": null, "slaStartsAfterApproval": false },
+    { "id": "cat_002", "parentId": null, "name": "Report Incident (แจ้งปัญหา)", "description": "แจ้งปัญหาทาง IT, อาคาร", "icon": "AlertTriangle", "slaNote": null, "slaStartsAfterApproval": false },
+    { "id": "cat_003", "parentId": null, "name": "Request For Change (CAB)", "description": "ขอเปลี่ยนแปลงระบบ ผ่านการพิจารณา CAB", "icon": "GitPullRequest", "slaNote": null, "slaStartsAfterApproval": false },
+    { "id": "cat_004", "parentId": null, "name": "User Access", "description": "ขอเพิ่ม / แก้ไข / ลบ สิทธิ์ผู้ใช้", "icon": "UserCog", "slaNote": "SLA: 3 วันหลังหัวหน้าอนุมัติ (ตัวอย่าง)", "slaStartsAfterApproval": true },
+    { "id": "cat_011", "parentId": "cat_001", "name": "Application / System", "description": "ขอปรับแก้ / พัฒนา / ขอข้อมูล ระบบ", "icon": "AppWindow", "slaNote": "SLA: 1 เดือนหลังหัวหน้าอนุมัติ (ตัวอย่าง)", "slaStartsAfterApproval": true },
+    { "id": "cat_012", "parentId": "cat_001", "name": "Hardware / Notebook / PC", "description": "ขอยืมเครื่อง / คืนเครื่อง", "icon": "Laptop", "slaNote": null, "slaStartsAfterApproval": true },
+    { "id": "cat_021", "parentId": "cat_002", "name": "Application / System", "description": "แจ้งปัญหาระบบต่าง ๆ", "icon": "AppWindow", "slaNote": null, "slaStartsAfterApproval": false },
+    { "id": "cat_022", "parentId": "cat_002", "name": "Hardware / Notebook / PC", "description": "แจ้งปัญหาเกี่ยวกับอุปกรณ์ Notebook / PC", "icon": "Laptop", "slaNote": null, "slaStartsAfterApproval": false },
+    { "id": "cat_023", "parentId": "cat_002", "name": "Network / WiFi / IP Phone", "description": "แจ้งปัญหา Network / WiFi", "icon": "Wifi", "slaNote": null, "slaStartsAfterApproval": false },
+    { "id": "cat_024", "parentId": "cat_002", "name": "Office Administration", "description": "แจ้งซ่อมกับฝ่ายอาคาร เช่น เปลี่ยนหลอดไฟ ซ่อมประตู", "icon": "Building2", "slaNote": null, "slaStartsAfterApproval": false }
+  ],
+  "templates": [
+    { "id": "tpl_001", "name": "Hardware - Incident", "callType": "Incident", "classification": "n/a", "parentCategory": "Hardware", "category": "End User Device", "subCategory": null, "defaultQueueId": "que_002", "defaultUrgency": "3-Medium", "defaultImpact": "4-Minor/Localized", "requiresApproval": [] },
+    { "id": "tpl_002", "name": "Application - Incident", "callType": "Incident", "classification": "n/a", "parentCategory": "Application", "category": "Business Application", "subCategory": null, "defaultQueueId": "que_003", "defaultUrgency": "2-High", "defaultImpact": "3-Moderate/Limited", "requiresApproval": [] },
+    { "id": "tpl_003", "name": "Network - Incident", "callType": "Incident", "classification": "n/a", "parentCategory": "Network", "category": "Connectivity", "subCategory": null, "defaultQueueId": "que_004", "defaultUrgency": "2-High", "defaultImpact": "3-Moderate/Limited", "requiresApproval": [] },
+    { "id": "tpl_004", "name": "Borrow Notebook - Service Request", "callType": "Service Requests", "classification": "Service Request", "parentCategory": "Hardware", "category": "Device Loan", "subCategory": null, "defaultQueueId": "que_002", "defaultUrgency": "4-Low", "defaultImpact": "4-Minor/Localized", "requiresApproval": ["Department approval"] },
+    { "id": "tpl_005", "name": "Add New User - Service Request", "callType": "Service Requests", "classification": "Service Request", "parentCategory": "User Access", "category": "Account", "subCategory": "New User", "defaultQueueId": "que_001", "defaultUrgency": "3-Medium", "defaultImpact": "4-Minor/Localized", "requiresApproval": ["Department approval", "Head approval"] },
+    { "id": "tpl_006", "name": "Application Change - RFC", "callType": "Change (RFC)", "classification": "Service Request", "parentCategory": "Application", "category": "Change", "subCategory": null, "defaultQueueId": "que_005", "defaultUrgency": "RFC - Medium", "defaultImpact": "RFC - Medium", "requiresApproval": ["Department approval", "Head approval"] },
+    { "id": "tpl_007", "name": "Facility Repair - Incident", "callType": "Incident", "classification": "n/a", "parentCategory": "Facility", "category": "Building", "subCategory": null, "defaultQueueId": "que_001", "defaultUrgency": "4-Low", "defaultImpact": "4-Minor/Localized", "requiresApproval": [] }
+  ],
+  "serviceDefinitions": [
+    { "id": "sdf_001", "categoryId": "cat_022", "name": "Keyboard - Incident", "description": "แจ้งปัญหา Keyboard", "requestType": "Incident", "templateId": "tpl_001", "serviceId": "svc_001" },
+    { "id": "sdf_002", "categoryId": "cat_022", "name": "Mouse - Incident", "description": "แจ้งปัญหา Mouse", "requestType": "Incident", "templateId": "tpl_001", "serviceId": "svc_001" },
+    { "id": "sdf_003", "categoryId": "cat_022", "name": "Monitor - Incident", "description": "แจ้งปัญหา Monitor", "requestType": "Incident", "templateId": "tpl_001", "serviceId": "svc_001" },
+    { "id": "sdf_004", "categoryId": "cat_022", "name": "Notebook / PC - Incident", "description": "แจ้งปัญหา Notebook / PC", "requestType": "Incident", "templateId": "tpl_001", "serviceId": "svc_001" },
+    { "id": "sdf_005", "categoryId": "cat_022", "name": "Passbook Printer - Incident", "description": "แจ้งปัญหา Passbook Printer", "requestType": "Incident", "templateId": "tpl_001", "serviceId": "svc_001" },
+    { "id": "sdf_006", "categoryId": "cat_021", "name": "Business Application - Incident", "description": "แจ้งปัญหาระบบงาน", "requestType": "Incident", "templateId": "tpl_002", "serviceId": "svc_002" },
+    { "id": "sdf_007", "categoryId": "cat_023", "name": "WiFi - Incident", "description": "แจ้งปัญหา WiFi ใช้งานไม่ได้", "requestType": "Incident", "templateId": "tpl_003", "serviceId": "svc_003" },
+    { "id": "sdf_008", "categoryId": "cat_024", "name": "ซ่อมแซมอาคาร - Incident", "description": "แจ้งซ่อมไฟ ประตู แอร์", "requestType": "Incident", "templateId": "tpl_007", "serviceId": "svc_004" },
+    { "id": "sdf_009", "categoryId": "cat_012", "name": "ขอยืม Notebook", "description": "ยืมเครื่องชั่วคราว", "requestType": "Service Requests", "templateId": "tpl_004", "serviceId": "svc_001" },
+    { "id": "sdf_010", "categoryId": "cat_004", "name": "Add New User", "description": "ขอเพิ่มผู้ใช้ใหม่", "requestType": "Service Requests", "templateId": "tpl_005", "serviceId": "svc_002" },
+    { "id": "sdf_011", "categoryId": "cat_011", "name": "ขอปรับแก้ระบบงาน", "description": "ขอเปลี่ยนแปลง/พัฒนาระบบ", "requestType": "Change (RFC)", "templateId": "tpl_006", "serviceId": "svc_002" }
+  ],
+  "supportCalls": [
+    {
+      "id": "call_001", "number": "100001", "callType": "Incident", "classification": "n/a",
+      "parentCategory": "Hardware", "category": "End User Device", "subCategory": null, "templateId": "tpl_001",
+      "requestorId": "usr_001", "openedByUserId": "usr_001", "phone": "0811111111", "email": "somchai.j@example.com", "customerReference": null,
+      "urgency": "3-Medium", "impact": "4-Minor/Localized", "priority": "P4",
+      "serviceId": "svc_001", "productId": "prd_001", "itemId": null, "serialNumber": "SN-NB-0001", "version": "Gen 3",
+      "summary": "Mouse ใช้งานไม่ได้", "notes": "<p>เมาส์ไร้สายไม่ตอบสนองหลังเปลี่ยนถ่านแล้ว</p>",
+      "status": "Assigned", "queueId": "que_002", "groupId": "grp_002", "assignedToId": "usr_006",
+      "organizationId": "org_001", "locationId": "loc_001",
+      "openDate": "2026-11-10T09:15:00+07:00", "dueDate": "2026-11-13T09:15:00+07:00", "closeDate": null,
+      "closureCategory": null, "itsrReference": null, "vvip": false, "surveyResult": null, "feedbackCategory": null,
+      "readByUserIds": ["usr_001", "usr_006"], "attachments": []
+    },
+    {
+      "id": "call_002", "number": "100002", "callType": "Incident", "classification": "n/a",
+      "parentCategory": "Application", "category": "Business Application", "subCategory": null, "templateId": "tpl_002",
+      "requestorId": "usr_003", "openedByUserId": "usr_001", "phone": "0833333333", "email": "wichai.p@example.com", "customerReference": "MEMO-2026-11",
+      "urgency": "1-Critical", "impact": "2-Significant/Large", "priority": "P1",
+      "serviceId": "svc_002", "productId": "prd_004", "itemId": "itm_001", "serialNumber": null, "version": "5.2",
+      "summary": "รายงานประจำวันในระบบ CRM ไม่แสดงผล", "notes": "<p>เปิดรายงานแล้วขึ้นหน้าว่าง ต้องใช้ประชุมเช้านี้</p>",
+      "status": "In Process", "queueId": "que_003", "groupId": "grp_003", "assignedToId": "usr_007",
+      "organizationId": "org_001", "locationId": "loc_002",
+      "openDate": "2026-11-11T07:30:00+07:00", "dueDate": "2026-11-11T11:30:00+07:00", "closeDate": null,
+      "closureCategory": null, "itsrReference": null, "vvip": true, "surveyResult": null, "feedbackCategory": null,
+      "readByUserIds": ["usr_001", "usr_007"], "attachments": [{ "id": "att_001", "fileName": "screenshot-report.png", "sizeKb": 245 }]
+    },
+    {
+      "id": "call_003", "number": "100003", "callType": "Incident", "classification": "n/a",
+      "parentCategory": "Network", "category": "Connectivity", "subCategory": null, "templateId": "tpl_003",
+      "requestorId": "usr_002", "openedByUserId": "usr_002", "phone": "0822222222", "email": "malee.s@example.com", "customerReference": null,
+      "urgency": "2-High", "impact": "3-Moderate/Limited", "priority": "P3",
+      "serviceId": "svc_003", "productId": null, "itemId": null, "serialNumber": null, "version": null,
+      "summary": "WiFi สาขาหลุดบ่อย", "notes": "<p>สัญญาณหลุดทุก 10–15 นาที ตั้งแต่เช้า</p>",
+      "status": "Pending", "queueId": "que_004", "groupId": "grp_004", "assignedToId": null,
+      "organizationId": "org_001", "locationId": "loc_003",
+      "openDate": "2026-11-05T10:00:00+07:00", "dueDate": "2026-11-06T10:00:00+07:00", "closeDate": null,
+      "closureCategory": null, "itsrReference": null, "vvip": false, "surveyResult": null, "feedbackCategory": null,
+      "readByUserIds": ["usr_002"], "attachments": []
+    },
+    {
+      "id": "call_004", "number": "100004", "callType": "Incident", "classification": "n/a",
+      "parentCategory": "Hardware", "category": "End User Device", "subCategory": null, "templateId": "tpl_001",
+      "requestorId": "usr_002", "openedByUserId": "usr_002", "phone": "0822222222", "email": "malee.s@example.com", "customerReference": null,
+      "urgency": "2-High", "impact": "4-Minor/Localized", "priority": "P3",
+      "serviceId": "svc_001", "productId": "prd_003", "itemId": null, "serialNumber": "SN-PB-0101", "version": "v2",
+      "summary": "Passbook Printer พิมพ์เอียง", "notes": "<p>สมุดบัญชีพิมพ์ตัวอักษรเลื่อนบรรทัด</p>",
+      "status": "Closed", "queueId": "que_002", "groupId": "grp_002", "assignedToId": "usr_006",
+      "organizationId": "org_001", "locationId": "loc_003",
+      "openDate": "2026-10-20T13:00:00+07:00", "dueDate": "2026-10-21T13:00:00+07:00", "closeDate": "2026-10-21T10:40:00+07:00",
+      "closureCategory": "Fixed", "itsrReference": null, "vvip": false, "surveyResult": 5, "feedbackCategory": "Speed",
+      "readByUserIds": ["usr_002", "usr_006"], "attachments": []
+    },
+    {
+      "id": "call_005", "number": "100005", "callType": "Service Requests", "classification": "Service Request",
+      "parentCategory": "Hardware", "category": "Device Loan", "subCategory": null, "templateId": "tpl_004",
+      "requestorId": "usr_001", "openedByUserId": "usr_001", "phone": "0811111111", "email": "somchai.j@example.com", "customerReference": null,
+      "urgency": "4-Low", "impact": "4-Minor/Localized", "priority": "P4",
+      "serviceId": "svc_001", "productId": null, "itemId": null, "serialNumber": null, "version": null,
+      "summary": "ขอยืม Notebook สำหรับงานอีเวนต์ 3 วัน", "notes": "<p>ใช้ระหว่าง 20–22 พ.ย. 2026</p>",
+      "status": "Waiting For Approve", "queueId": "que_002", "groupId": "grp_002", "assignedToId": null,
+      "organizationId": "org_001", "locationId": "loc_001",
+      "openDate": "2026-11-11T08:00:00+07:00", "dueDate": null, "closeDate": null,
+      "closureCategory": null, "itsrReference": null, "vvip": false, "surveyResult": null, "feedbackCategory": null,
+      "readByUserIds": ["usr_001"], "attachments": []
+    },
+    {
+      "id": "call_006", "number": "100006", "callType": "Service Requests", "classification": "Service Request",
+      "parentCategory": "User Access", "category": "Account", "subCategory": "New User", "templateId": "tpl_005",
+      "requestorId": "usr_002", "openedByUserId": "usr_004", "phone": "0822222222", "email": "malee.s@example.com", "customerReference": null,
+      "urgency": "3-Medium", "impact": "4-Minor/Localized", "priority": "P4",
+      "serviceId": "svc_002", "productId": null, "itemId": null, "serialNumber": null, "version": null,
+      "summary": "Add New User - ระบบอีเมล สำหรับพนักงานใหม่", "notes": "<p>พนักงานใหม่เริ่มงาน 1 ธ.ค. 2026</p>",
+      "status": "Department Accepted", "queueId": "que_001", "groupId": "grp_001", "assignedToId": null,
+      "organizationId": "org_001", "locationId": "loc_003",
+      "openDate": "2026-11-09T14:20:00+07:00", "dueDate": null, "closeDate": null,
+      "closureCategory": null, "itsrReference": null, "vvip": false, "surveyResult": null, "feedbackCategory": null,
+      "readByUserIds": ["usr_004"], "attachments": []
+    },
+    {
+      "id": "call_007", "number": "100007", "callType": "Service Requests", "classification": "Service Request",
+      "parentCategory": "User Access", "category": "Account", "subCategory": "New User", "templateId": "tpl_005",
+      "requestorId": "usr_001", "openedByUserId": "usr_001", "phone": "0811111111", "email": "somchai.j@example.com", "customerReference": null,
+      "urgency": "3-Medium", "impact": "4-Minor/Localized", "priority": "P4",
+      "serviceId": "svc_002", "productId": null, "itemId": null, "serialNumber": null, "version": null,
+      "summary": "Add New User - ระบบ CRM", "notes": "<p>ขอสิทธิ์ผู้ใช้สำหรับเด็กฝึกงาน</p>",
+      "status": "Department Declined", "queueId": "que_001", "groupId": "grp_001", "assignedToId": null,
+      "organizationId": "org_001", "locationId": "loc_001",
+      "openDate": "2026-10-28T11:00:00+07:00", "dueDate": null, "closeDate": "2026-10-29T09:00:00+07:00",
+      "closureCategory": null, "itsrReference": null, "vvip": false, "surveyResult": null, "feedbackCategory": null,
+      "readByUserIds": ["usr_001", "usr_004"], "attachments": []
+    },
+    {
+      "id": "call_008", "number": "100008", "callType": "Change (RFC)", "classification": "Service Request",
+      "parentCategory": "Application", "category": "Change", "subCategory": null, "templateId": "tpl_006",
+      "requestorId": "usr_004", "openedByUserId": "usr_004", "phone": "0844444444", "email": "preecha.h@example.com", "customerReference": "PRJ-CRM-07",
+      "urgency": "RFC - Medium", "impact": "RFC - Medium", "priority": "P2",
+      "serviceId": "svc_002", "productId": "prd_004", "itemId": "itm_002", "serialNumber": null, "version": "5.2",
+      "summary": "เพิ่ม field เบอร์สำรองในหน้าข้อมูลลูกค้า", "notes": "<p>ต้องการ field ใหม่และรายงานที่เกี่ยวข้อง</p>",
+      "status": "Ready for CAB", "queueId": "que_005", "groupId": "grp_005", "assignedToId": "usr_007",
+      "organizationId": "org_001", "locationId": "loc_001",
+      "openDate": "2026-11-01T10:00:00+07:00", "dueDate": "2026-12-15T18:00:00+07:00", "closeDate": null,
+      "closureCategory": null, "itsrReference": null, "vvip": false, "surveyResult": null, "feedbackCategory": null,
+      "scheduledDate": "2026-11-28T22:00:00+07:00",
+      "implementationStartDate": "2026-11-28T22:00:00+07:00", "implementationEndDate": "2026-11-29T02:00:00+07:00",
+      "systemDownStartDate": "2026-11-28T23:00:00+07:00", "systemDownEndDate": "2026-11-29T01:00:00+07:00",
+      "cabMeetingStartDate": "2026-11-18T14:00:00+07:00", "cabMeetingEndDate": "2026-11-18T15:00:00+07:00",
+      "readByUserIds": ["usr_004", "usr_007"], "attachments": [{ "id": "att_002", "fileName": "change-spec.pdf", "sizeKb": 820 }]
+    },
+    {
+      "id": "call_009", "number": "100009", "callType": "Incident", "classification": "n/a",
+      "parentCategory": "Facility", "category": "Building", "subCategory": null, "templateId": "tpl_007",
+      "requestorId": "usr_001", "openedByUserId": "usr_001", "phone": "0811111111", "email": "somchai.j@example.com", "customerReference": null,
+      "urgency": "4-Low", "impact": "4-Minor/Localized", "priority": "P4",
+      "serviceId": "svc_004", "productId": null, "itemId": null, "serialNumber": null, "version": null,
+      "summary": "หลอดไฟห้องประชุมเสีย", "notes": "<p>ห้องประชุม 10A หลอดไฟดับ 2 ดวง</p>",
+      "status": "Resolved", "queueId": "que_001", "groupId": "grp_001", "assignedToId": "usr_006",
+      "organizationId": "org_001", "locationId": "loc_001",
+      "openDate": "2026-11-07T09:00:00+07:00", "dueDate": "2026-11-10T09:00:00+07:00", "closeDate": null,
+      "closureCategory": "Replaced Hardware", "itsrReference": null, "vvip": false, "surveyResult": null, "feedbackCategory": null,
+      "readByUserIds": ["usr_001", "usr_006"], "attachments": []
+    }
+  ],
+  "callHistory": [
+    { "id": "his_001", "callId": "call_001", "at": "2026-11-10T09:15:00+07:00", "byUserId": "usr_001", "action": "created", "fromStatus": null, "toStatus": "New", "comment": null },
+    { "id": "his_002", "callId": "call_001", "at": "2026-11-10T10:00:00+07:00", "byUserId": "usr_006", "action": "assigned", "fromStatus": "New", "toStatus": "Assigned", "comment": "รับเรื่องแล้ว จะเข้าไปดูช่วงบ่าย" },
+    { "id": "his_003", "callId": "call_002", "at": "2026-11-11T07:30:00+07:00", "byUserId": "usr_001", "action": "created", "fromStatus": null, "toStatus": "New", "comment": "แจ้งแทนผู้บริหาร" },
+    { "id": "his_004", "callId": "call_002", "at": "2026-11-11T07:45:00+07:00", "byUserId": "usr_007", "action": "status_changed", "fromStatus": "New", "toStatus": "In Process", "comment": "กำลังตรวจ log ของรายงาน" },
+    { "id": "his_005", "callId": "call_003", "at": "2026-11-05T10:00:00+07:00", "byUserId": "usr_002", "action": "created", "fromStatus": null, "toStatus": "New", "comment": null },
+    { "id": "his_006", "callId": "call_003", "at": "2026-11-05T15:00:00+07:00", "byUserId": "usr_006", "action": "status_changed", "fromStatus": "New", "toStatus": "Pending", "comment": "รอผู้ให้บริการเครือข่ายตรวจอุปกรณ์" },
+    { "id": "his_007", "callId": "call_004", "at": "2026-10-21T10:30:00+07:00", "byUserId": "usr_006", "action": "status_changed", "fromStatus": "In Process", "toStatus": "Resolved", "comment": "ปรับตั้งหัวพิมพ์แล้ว" },
+    { "id": "his_008", "callId": "call_004", "at": "2026-10-21T10:40:00+07:00", "byUserId": "usr_002", "action": "status_changed", "fromStatus": "Resolved", "toStatus": "Closed", "comment": "ใช้งานได้ปกติ" },
+    { "id": "his_009", "callId": "call_009", "at": "2026-11-08T11:00:00+07:00", "byUserId": "usr_006", "action": "status_changed", "fromStatus": "In Process", "toStatus": "Resolved", "comment": "เปลี่ยนหลอดไฟแล้ว" }
+  ],
+  "approvals": [
+    { "id": "apv_001", "callId": "call_005", "approvalType": "Department approval", "approverId": "usr_004", "done": false, "decision": "pending", "comment": null, "decidedAt": null },
+    { "id": "apv_002", "callId": "call_006", "approvalType": "Department approval", "approverId": "usr_004", "done": true, "decision": "approved", "comment": "อนุมัติ", "decidedAt": "2026-11-09T16:00:00+07:00" },
+    { "id": "apv_003", "callId": "call_006", "approvalType": "Head approval", "approverId": "usr_005", "done": false, "decision": "pending", "comment": null, "decidedAt": null },
+    { "id": "apv_004", "callId": "call_007", "approvalType": "Department approval", "approverId": "usr_004", "done": true, "decision": "rejected", "comment": "เด็กฝึกงานใช้บัญชีกลางของทีมแทน", "decidedAt": "2026-10-29T09:00:00+07:00" },
+    { "id": "apv_005", "callId": "call_008", "approvalType": "Department approval", "approverId": "usr_004", "done": true, "decision": "approved", "comment": null, "decidedAt": "2026-11-02T10:00:00+07:00" },
+    { "id": "apv_006", "callId": "call_008", "approvalType": "Head approval", "approverId": "usr_005", "done": true, "decision": "approved", "comment": "ผ่าน ส่งเข้า CAB", "decidedAt": "2026-11-04T09:30:00+07:00" }
+  ],
+  "activities": [
+    { "id": "act_001", "callId": "call_008", "type": "CAB Meeting", "taskType": "Meeting", "subject": "พิจารณา RFC 100008", "scheduledStart": "2026-11-18T14:00:00+07:00", "scheduledEnd": "2026-11-18T15:00:00+07:00", "priority": "P2", "status": "Staged", "ownerId": "usr_007", "actionPlan": "นำเสนอขอบเขตและแผน rollback", "attachments": [] },
+    { "id": "act_002", "callId": "call_008", "type": "Deployment Dates", "taskType": "Deployment", "subject": "Deploy field เบอร์สำรอง", "scheduledStart": "2026-11-28T22:00:00+07:00", "scheduledEnd": "2026-11-29T02:00:00+07:00", "priority": "P2", "status": "Staged", "ownerId": "usr_007", "actionPlan": "deploy → smoke test → เปิดระบบ", "attachments": [] },
+    { "id": "act_003", "callId": null, "type": "Change Freeze Window", "taskType": "Freeze", "subject": "Freeze ปลายปี", "scheduledStart": "2026-12-25T00:00:00+07:00", "scheduledEnd": "2027-01-03T23:59:00+07:00", "priority": null, "status": "Staged", "ownerId": "usr_008", "actionPlan": "ห้าม implement RFC ทุกประเภท", "attachments": [] },
+    { "id": "act_004", "callId": "call_001", "type": "Standard Task", "taskType": "Onsite", "subject": "เข้าตรวจเมาส์ที่โต๊ะผู้แจ้ง", "scheduledStart": "2026-11-11T13:30:00+07:00", "scheduledEnd": "2026-11-11T14:00:00+07:00", "priority": "P4", "status": "Assigned", "ownerId": "usr_006", "actionPlan": "นำเมาส์สำรองไปเปลี่ยน", "attachments": [] }
+  ],
+  "answerBooks": [
+    { "id": "bok_001", "name": "End User Guide" },
+    { "id": "bok_002", "name": "Network" },
+    { "id": "bok_003", "name": "Business Application" }
+  ],
+  "answers": [
+    { "id": "ans_001", "number": "KB-0001", "summary": "วิธีเชื่อมต่อ WiFi สำนักงาน", "category": "Network", "bookId": "bok_002", "item": null, "itemVersion": null, "body": "1. เลือกเครือข่ายของสำนักงาน\n2. ใส่บัญชีผู้ใช้ขององค์กร\n3. ยอมรับใบรับรอง" },
+    { "id": "ans_002", "number": "KB-0002", "summary": "เมาส์ไร้สายไม่ตอบสนอง", "category": "Hardware", "bookId": "bok_001", "item": null, "itemVersion": null, "body": "เปลี่ยนถ่าน, เสียบ receiver ใหม่ที่พอร์ตอื่น, ถ้ายังไม่ได้ให้แจ้ง Incident" },
+    { "id": "ans_003", "number": "KB-0003", "summary": "รายงานในระบบ CRM แสดงหน้าว่าง", "category": "Application", "bookId": "bok_003", "item": "โมดูลรายงาน", "itemVersion": "5.2", "body": "ล้าง cache ของ browser แล้วเปิดใหม่ ถ้ายังพบให้แจ้ง Incident พร้อม screenshot" }
+  ],
+  "runningNumber": { "supportCall": 100009 },
+  "ai": {
+    "_note": "AI Assistant via agent on Azure (contract TBD). Fallback rules below are used when the agent is unavailable [PROP].",
+    "fallbackKeywordToServiceDefinition": [
+      { "keywords": ["เมาส์", "mouse"], "serviceDefinitionId": "sdf_002" },
+      { "keywords": ["คีย์บอร์ด", "keyboard"], "serviceDefinitionId": "sdf_001" },
+      { "keywords": ["จอ", "monitor"], "serviceDefinitionId": "sdf_003" },
+      { "keywords": ["wifi", "ไวไฟ", "เน็ต"], "serviceDefinitionId": "sdf_007" },
+      { "keywords": ["หลอดไฟ", "ประตู", "แอร์"], "serviceDefinitionId": "sdf_008" },
+      { "keywords": ["ยืม", "notebook"], "serviceDefinitionId": "sdf_009" },
+      { "keywords": ["user ใหม่", "สิทธิ์", "บัญชีผู้ใช้"], "serviceDefinitionId": "sdf_010" }
+    ],
+    "fallbackIntentToRoute": [
+      { "keywords": ["ค้าง", "เรื่องของฉัน", "ติดตาม"], "route": "/my-space" },
+      { "keywords": ["ค้นหา", "หาเรื่อง"], "route": "/calls/search" },
+      { "keywords": ["อนุมัติ"], "route": "/approvals" },
+      { "keywords": ["แจ้ง", "เปิด ticket"], "route": "/calls/new" },
+      { "keywords": ["บริการ", "catalog"], "route": "/catalog" },
+      { "keywords": ["คู่มือ", "วิธี"], "route": "/answers" }
+    ]
+  }
+}
