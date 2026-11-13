@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:lambda": "rolldown server/lambda.ts --dir build/lambda --format esm --platform node --entry-file-names index.mjs && node -e \"require('fs').writeFileSync('build/lambda/package.json','{\\\"type\\\":\\\"module\\\"}')\"",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

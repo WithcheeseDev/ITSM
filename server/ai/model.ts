@@ -11,6 +11,7 @@ export interface AiEnv {
   AWS_REGION?: string;
   AWS_ACCESS_KEY_ID?: string;
   AWS_SECRET_ACCESS_KEY?: string;
+  AWS_SESSION_TOKEN?: string;
 }
 
 const REQUEST_TIMEOUT_MS = 3500;
@@ -53,8 +54,10 @@ export function resolveModel(env: AiEnv): LanguageModel {
   }
   if (provider === 'bedrock') {
     const { AWS_REGION: region, AWS_ACCESS_KEY_ID: accessKeyId, AWS_SECRET_ACCESS_KEY: secretAccessKey } = env;
-    if (!region || !accessKeyId || !secretAccessKey) throw new ConfigMissingError('bedrock');
-    return createAmazonBedrock({ region, accessKeyId, secretAccessKey, fetch: stallRetryFetch() })(model);
+    if (!region || (!!accessKeyId !== !!secretAccessKey)) throw new ConfigMissingError('bedrock');
+    // Lambda passes its role's temporary keys (+ session token) through env; with none, the SDK reads AWS_* itself
+    const keys = accessKeyId && secretAccessKey ? { accessKeyId, secretAccessKey, sessionToken: env.AWS_SESSION_TOKEN } : {};
+    return createAmazonBedrock({ region, ...keys, fetch: stallRetryFetch() })(model);
   }
   throw new ConfigMissingError('AI_PROVIDER');
 }
