@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ITSM Support Desk — Presentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+:root{
+  --blue:#8aa7b9; --lav:#c2afd5; --pink:#e2adb7; --navy:#192060;
+  --ink:#192060; --muted:#5b6285; --line:rgba(25,32,96,.10); --bg:#fbfbfd;
+  --blue-t:rgba(138,167,185,.18); --lav-t:rgba(194,175,213,.22); --pink-t:rgba(226,173,183,.22); --navy-t:rgba(25,32,96,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:'Noto Sans Thai',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.deck{position:fixed;inset:0}
+.slide{position:absolute;inset:0;opacity:0;visibility:hidden;transform:translateX(40px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.2,1),visibility 0s .6s}
+.slide.active{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+.slide.past{transform:translateX(-40px)}
+.inner{height:100%;overflow-y:auto;padding:56px clamp(24px,6vw,110px) 72px;display:flex;flex-direction:column}
+.inner::-webkit-scrollbar{width:8px}.inner::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+.inner>.body{margin:auto 0;width:100%;max-width:1320px;align-self:center}
+.eyebrow{font-size:13px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;color:var(--blue);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.eyebrow i,.eyebrow svg{width:16px;height:16px}
+h1{font-size:clamp(44px,7vw,92px);font-weight:800;line-height:1.05;letter-spacing:-.02em}
+h2{font-size:clamp(28px,3.6vw,48px);font-weight:700;line-height:1.2;letter-spacing:-.01em;margin-bottom:8px}
+.sub{font-size:clamp(16px,1.6vw,22px);color:var(--muted);font-weight:300;margin-bottom:28px}
+.grad{background:linear-gradient(90deg,var(--navy),#6c5ba8 55%,#d98a9b);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* blobs */
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.55;pointer-events:none;z-index:-1}
+/* reveal */
+.r{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+.slide.active .r{opacity:1;transform:none;transition-delay:calc(var(--i,0)*90ms + 150ms)}
+/* cards */
+.grid{display:grid;gap:18px}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}.g6{grid-template-columns:repeat(3,1fr)}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 10px 30px -18px rgba(25,32,96,.25)}
+.ico{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;margin-bottom:14px;color:var(--navy)}
+.ico svg{width:24px;height:24px}
+.c-blue{background:var(--blue-t)}.c-lav{background:var(--lav-t)}.c-pink{background:var(--pink-t)}.c-navy{background:var(--navy);color:#fff}
+.ico.c-navy{color:#fff}
+.card h3{font-size:20px;font-weight:600;margin-bottom:6px}
+.card p,.card li{font-size:15px;color:var(--muted);line-height:1.6;font-weight:400}
+.card ul{list-style:none}
+.big{font-size:clamp(40px,5vw,68px);font-weight:800;line-height:1;letter-spacing:-.02em}
+.lbl{font-size:14px;color:var(--muted);margin-top:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font-size:14px;font-weight:500;background:var(--navy-t);color:var(--navy)}
+.chip svg{width:15px;height:15px}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.diagram{background:#fff;border:1px solid var(--line);border-radius:24px;padding:18px;box-shadow:0 14px 40px -24px rgba(25,32,96,.3)}
+.diagram svg{display:block;width:100%;height:auto;max-height:calc(100vh - 230px)}
+.diagram.tall svg{max-height:none}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-bottom:12px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend b{width:14px;height:14px;border-radius:5px;display:inline-block}
+/* steps row */
+.row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.step{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;font-weight:500;font-size:16px}
+.step .ico{margin:0;width:68px;height:68px;border-radius:22px}.step .ico svg{width:30px;height:30px}
+.arrow{color:var(--blue)}.arrow svg{width:28px;height:28px}
+/* compare */
+.cmp{display:grid;grid-template-columns:1fr 56px 1fr;gap:14px;align-items:center;margin-bottom:14px}
+.cmp .a,.cmp .b{border-radius:18px;padding:18px 22px;font-size:17px;font-weight:500}
+.cmp .a{background:var(--pink-t);color:#7a3a4a}.cmp .b{background:var(--blue-t);color:var(--navy)}
+.cmp .mid{display:grid;place-items:center;color:var(--navy)}
+.cmp small{display:block;font-weight:300;font-size:13px;opacity:.8;margin-top:2px}
+/* architecture */
+.layer{border-radius:20px;padding:16px 20px;border:1px solid var(--line);position:relative}
+.layer>.t{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;opacity:.75}
+.layer .items{display:flex;flex-wrap:wrap;gap:8px}
+.layer .items span{background:#fff;border:1px solid var(--line);border-radius:12px;padding:7px 12px;font-size:14px;font-weight:500;display:inline-flex;gap:6px;align-items:center}
+.layer .items svg{width:15px;height:15px}
+.down{display:grid;place-items:center;color:var(--blue);height:26px}.down svg{width:22px;height:22px}
+/* roadmap */
+.tl{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;position:relative}
+.tl::before{content:"";position:absolute;left:4%;right:4%;top:22px;height:3px;background:linear-gradient(90deg,var(--blue),var(--lav),var(--pink));border-radius:3px}
+.ph{position:relative;text-align:center}
+.dot{width:46px;height:46px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;background:#fff;border:3px solid var(--blue);color:var(--navy);position:relative;z-index:1}
+.dot svg{width:20px;height:20px}
+.ph.done .dot{background:var(--navy);border-color:var(--navy);color:#fff}
+.ph.skip .dot{border-style:dashed;color:var(--muted);border-color:var(--lav)}
+.ph h4{font-size:16px;font-weight:600;margin-bottom:4px}.ph p{font-size:13px;color:var(--muted);line-height:1.5}
+/* nav */
+#bar{position:fixed;top:0;left:0;height:4px;width:0;background:linear-gradient(90deg,var(--blue),var(--lav),var(--pink),var(--navy));z-index:20;transition:width .5s ease}
+#count{position:fixed;right:28px;bottom:20px;z-index:20;font-size:14px;font-weight:600;color:var(--navy);background:rgba(255,255,255,.8);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-variant-numeric:tabular-nums}
+#brand{position:fixed;left:28px;bottom:22px;z-index:20;font-size:13px;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:8px}
+#brand svg{width:16px;height:16px}
+.navb{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:8px}
+.navb button{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.85);backdrop-filter:blur(10px);color:var(--navy);cursor:pointer;display:grid;place-items:center}
+.navb button:hover{background:var(--navy);color:#fff}.navb svg{width:18px;height:18px}
+.navb button:focus-visible{outline:3px solid var(--lav);outline-offset:2px}
+@media(max-width:900px){.g3,.g4,.g6{grid-template-columns:repeat(2,1fr)}.cmp{grid-template-columns:1fr}.cmp .mid{transform:rotate(90deg)}.tl{grid-template-columns:repeat(2,1fr)}.tl::before{display:none}.g2{grid-template-columns:1fr}}
+@media(max-width:560px){.g3,.g4,.g6{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.slide,.r{transition:none!important}}
+svg text{font-family:'Noto Sans Thai',system-ui,sans-serif}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<main class="deck" id="deck">
+
+<!-- 1 Cover -->
+<section class="slide"><div class="inner">
+  <div class="blob" style="width:420px;height:420px;background:var(--lav);top:-100px;right:-80px"></div>
+  <div class="blob" style="width:360px;height:360px;background:var(--pink);bottom:-80px;left:-60px"></div>
+  <div class="blob" style="width:300px;height:300px;background:var(--blue);bottom:20%;right:20%"></div>
+  <div class="body">
+    <div class="eyebrow r"><i data-lucide="headset"></i>IT-01 · AI-DLC with Kiro</div>
+    <h1 class="r" style="--i:1">ITSM <span class="grad">Support Desk</span></h1>
+    <p class="sub r" style="--i:2;margin-top:18px;max-width:760px">เว็บแจ้งเรื่อง ขอบริการ และติดตาม Support Call ภายในองค์กร ตั้งแต่แจ้งจนปิดงาน ในที่เดียว</p>
+    <div class="chips r" style="--i:3">
+      <span class="chip"><i data-lucide="layout-grid"></i>Service Catalog</span>
+      <span class="chip"><i data-lucide="clock"></i>SLA &amp; Time Left</span>
+      <span class="chip"><i data-lucide="check-circle"></i>2-step Approval</span>
+      <span class="chip"><i data-lucide="sparkles"></i>AI Assistant</span>
+    </div>
+  </div>
+</div></section>
+
+<!-- 2 Overview -->
+<section class="slide"><div class="inner"><div class="body">
+  <div class="eyebrow r"><i data-lucide="layout-dashboard"></i>Project Overview</div>
+  <h2 class="r" style="--i:1">แจ้งเรื่องเดียว ดูแลครบทั้งวงจร</h2>
+  <p class="sub r" style="--i:2">IT / อาคาร · ขอบริการ · ขอเปลี่ยนแปลงระบบ (RFC) ผ่านหน้าเว็บเดียว</p>
+  <div class="row r" style="--i:3;justify-content:center;margin:34px 0 44px;gap:22px">
+    <div class="step"><div class="ico c-blue"><i data-lucide="file-plus"></i></div>แจ้งเรื่อง</div><span class="arrow"><i data-lucide="arrow-right"></i></span>
+    <div class="step"><div class="ico c-lav"><i data-lucide="user-check"></i></div>อนุมัติ</div><span class="arrow"><i data-lucide="arrow-right"></i></span>
+    <div class="step"><div class="ico c-pink"><i data-lucide="wrench"></i></div>แก้ไข</div><span class="arrow"><i data-lucide="arrow-right"></i></span>
+    <div class="step"><div class="ico c-navy"><i data-lucide="circle-check"></i></div>ปิดงาน</div>
+  </div>
+  <div class="grid g4">
+    <div class="card r" style="--i:4"><div class="big grad">34</div><div class="lbl">User Stories (Must + Should)</div></div>
+    <div class="card r" style="--i:5"><div class="big grad">15</div><div class="lbl">Components</div></div>
+    <div class="card r" style="--i:6"><div class="big grad">13</div><div class="lbl">Core Entities</div></div>
+    <div class="card r" style="--i:7"><div class="big grad">4</div><div class="lbl">Roles</div></div>
+  </div>
+</div></div></section>
+
+<!-- 3 Business goal -->
+<section class="slide"><div class="inner"><div class="body">
+  <div class="eyebrow r"><i data-lucide="target"></i>Business Goal</div>
+  <h2 class="r" style="--i:1">เร็วขึ้น มองเห็นชัด ควบคุมได้</h2>
+  <p class="sub r" style="--i:2">เป้าหมายหลัก 3 ข้อ</p>
+  <div class="grid g3">
+    <div class="card r" style="--i:3"><div class="ico c-blue"><i data-lucide="zap"></i></div><h3>แจ้งเร็ว</h3><p>เลือกจาก Service Catalog หรือถาม AI ระบบกรอกค่าเริ่มต้นจาก Template</p></div>
+    <div class="card r" style="--i:4"><div class="ico c-lav"><i data-lucide="timer"></i></div><h3>ติดตามได้</h3><p>เห็นสถานะ ลำดับความสำคัญ และเวลาที่เหลือตาม SLA ใน My Space</p></div>
+    <div class="card r" style="--i:5"><div class="ico c-pink"><i data-lucide="shield-check"></i></div><h3>ควบคุมได้</h3><p>อนุมัติ 2 ขั้น สิทธิ์ตาม Role และ Timeline ตรวจย้อนหลังได้</p></div>
+  </div>
+  <div class="chips r" style="--i:6;margin-top:28px">
+    <span class="chip"><i data-lucide="accessibility"></i>WCAG 2.2 AA</span>
+    <span class="chip"><i data-lucide="gauge"></i>โหลดหน้า ≤ 2 วินาที</span>
+    <span class="chip"><i data-lucide="search"></i>ค้นหา 1,000 รายการ ≤ 500 ms</span>
+  </div>
+</div></div></section>
+
+<!-- 4 Problem & Solution -->
+<section class="slide"><div class="inner"><div class="body">
+  <div class="eyebrow r"><i data-lucide="lightbulb"></i>Problem &amp; Solution</div>
+  <h2 class="r" style="--i:1">จากระบบเดิมที่ซับซ้อน สู่ประสบการณ์ที่เรียบง่าย</h2>
+  <p class="sub r" style="--i:2">ปัญหาจากระบบ ITSM เดิม → สิ่งที่ระบบใหม่ทำ</p>
+  <div class="cmp r" style="--i:3"><div class="a"><small>ปัญหา</small>ตาราง ~40 คอลัมน์ หาเรื่องตัวเองยาก</div><div class="mid"><i data-lucide="arrow-right"></i></div><div class="b"><small>วิธีแก้</small>8 คอลัมน์ default เลือกเพิ่มได้ จำต่อผู้ใช้</div></div>
+  <div class="cmp r" style="--i:4"><div class="a"><small>ปัญหา</small>สถานะรวม 47 ค่า มีซ้ำ ทุก call type</div><div class="mid"><i data-lucide="arrow-right"></i></div><div class="b"><small>วิธีแก้</small>สถานะแยกตาม call type + State machine</div></div>
+  <div class="cmp r" style="--i:5"><div class="a"><small>ปัญหา</small>ไม่เห็น Priority matrix และขั้นตอนถัดไป</div><div class="mid"><i data-lucide="arrow-right"></i></div><div class="b"><small>วิธีแก้</small>Urgency × Impact → P1–P4 + ปุ่มตาม transition</div></div>
+  <div class="cmp r" style="--i:6"><div class="a"><small>ปัญหา</small>ไม่รู้ว่าต้องเลือกบริการไหน</div><div class="mid"><i data-lucide="arrow-right"></i></div><div class="b"><small>วิธีแก้</small>Service Catalog ลำดับชั้น + AI Assistant</div></div>
+</div></div></section>
+
+<!-- 5 Key features -->
+<section class="slide"><div class="inner"><div class="body">
+  <div class="eyebrow r"><i data-lucide="layers"></i>Key Features</div>
+  <h2 class="r" style="--i:1">6 ความสามารถหลัก</h2>
+  <p class="sub r" style="--i:2">ครอบคลุมตั้งแต่ผู้แจ้งจนถึงผู้อนุมัติและเจ้าหน้าที่</p>
+  <div class="grid g6">
+    <div class="card r" style="--i:3"><div class="ico c-blue"><i data-lucide="layout-grid"></i></div><h3>Service Catalog</h3><p>หมวดลำดับชั้น → บริการ → ฟอร์มจาก Template</p></div>
+    <div class="card r" style="--i:4"><div class="ico c-lav"><i data-lucide="file-plus"></i></div><h3>Add Support Call</h3><p>แจ้งเอง / แจ้งแทน · คำนวณ Priority · ออกเลข Ticket</p></div>
+    <div class="card r" style="--i:5"><div class="ico c-pink"><i data-lucide="inbox"></i></div><h3>My Space</h3><p>เรื่องของฉัน และที่แจ้งแทน พร้อม Time Left</p></div>
+    <div class="card r" style="--i:6"><div class="ico c-blue"><i data-lucide="search"></i></div><h3>Search &amp; Detail</h3><p>ค้นหาขั้นสูง · Timeline · Action ตาม State machine</p></div>
+    <div class="card r" style="--i:7"><div class="ico c-lav"><i data-lucide="stamp"></i></div><h3>Approvals</h3><p>Department → Head ปฏิเสธต้องมีเหตุผล</p></div>
+    <div class="card r" style="--i:8"><div class="ico c-navy"><i data-lucide="sparkles"></i></div><h3>AI Assistant</h3><p>ช่วยกรอกฟอร์ม และพาไปหน้าที่ต้องการ</p></div>
+  </div>
+</div></div></section>
+
+<!-- 6 Business workflow -->
+<section class="slide"><div class="inner"><div class="body">
+  <div class="eyebrow r"><i data-lucide="workflow"></i>Business Workflow</div>
+  <h2 class="r" style="--i:1">วงจรชีวิตของ Support Call</h2>
+  <div class="legend r" style="--i:2"><span><b style="background:var(--blue)"></b>ผู้แจ้ง</span><span><b style="background:var(--lav)"></b>ผู้อนุมัติ</span><span><b style="background:var(--navy)"></b>เจ้าหน้าที่</span><span><b style="background:var(--pink)"></b>จุดตัดสินใจ / สิ้นสุด</span></div>
+  <div class="diagram r" style="--i:3"><svg id="svgFlow" role="img" aria-label="Business workflow ตั้งแต่แจ้งเรื่องถึงปิดงาน"></svg></div>
+</div></div></section>
+
+<!-- 7 Role workflow -->
+<section class="slide"><div class="inner"><div class="body">
+  <div class="eyebrow r"><i data-lucide="users"></i>Role Workflow</div>
+  <h2 class="r" style="--i:1">4 Role ทำงานส่งต่อกันอย่างไร</h2>
+  <div class="diagram r" style="--i:2"><svg id="svgRole" role="img" aria-label="Swimlane ของ Requestor Approver Agent Admin"></svg></div>
+</div></div></section>
+
+<!-- 8 Role cards -->
+<section class="slide"><div class="inner"><div class="body">
+  <div class="eyebrow r"><i data-lucide="user-cog"></i>Roles &amp; Visibility</div>
+  <h2 class="r" style="--i:1">แต่ละ Role เห็นและทำอะไรได้</h2>
+  <p class="sub r" style="--i:2">RBAC แบบ default-deny อ่านสิทธิ์จาก rolePermissions</p>
+  <div class="grid g4">
+    <div class="card r" style="--i:3"><div class="ico c-blue"><i data-lucide="user"></i></div><h3>Requestor</h3><p style="font-weight:600;color:var(--navy)">สมชาย · พนักงาน</p><ul style="margin-top:10px"><li>เห็น: เรื่องตัวเอง + แจ้งแทน</li><li>ทำ: แจ้ง · ติดตาม · ยกเลิก · Re-open</li></ul></div>
+    <div class="card r" style="--i:4"><div class="ico c-lav"><i data-lucide="user-check"></i></div><h3>Approver</h3><p style="font-weight:600;color:var(--navy)">ปรีชา / อรุณี · หัวหน้า</p><ul style="margin-top:10px"><li>เห็น: เรื่องตัวเอง + คำขอรออนุมัติ</li><li>ทำ: อนุมัติ / ปฏิเสธ + comment</li></ul></div>
+    <div class="card r" style="--i:5"><div class="ico c-navy"><i data-lucide="headset"></i></div><h3>Agent</h3><p style="font-weight:600;color:var(--navy)">ธนา · Service Desk</p><ul style="margin-top:10px"><li>เห็น: เรื่องในคิวกลุ่มตัวเอง</li><li>ทำ: Assign · เปลี่ยนสถานะ · ปิดงาน</li></ul></div>
+    <div class="card r" style="--i:6"><div class="ico c-pink"><i data-lucide="settings"></i></div><h3>Admin</h3><p style="font-weight:600;color:var(--navy)">ผู้ดูแลระบบ</p><ul style="margin-top:10px"><li>เห็น: ทุกเรื่อง (อ่านอย่างเดียว)</li><li>ทำ: ตรวจ Timeline · ดูแลข้อมูลอ้างอิง</li></ul></div>
+  </div>
+</div></div></section>
+
+<!-- 9 ER -->
+<section class="slide"><div class="inner"><div class="body" style="max-width:1500px">
+  <div class="eyebrow r"><i data-lucide="database"></i>ER Diagram</div>
+  <h2 class="r" style="--i:1">โครงสร้างข้อมูล 13 Entity ใน 4 Module</h2>
+  <div class="legend r" style="--i:2"><span><b style="background:var(--navy)"></b>Ticket Core</span><span><b style="background:var(--lav)"></b>Catalog</span><span><b style="background:var(--blue)"></b>People &amp; Org</span><span><b style="background:var(--pink)"></b>Config Item</span><span>1 : N เส้นทึบ · N : N เส้นประ (User ↔ Group ผ่าน groupIds[])</span></div>
+  <div class="diagram tall r" style="--i:3"><svg id="svgER" role="img" aria-label="ER Diagram ของ ITSM Support Desk"></svg></div>
+</div></div></section>
+
+<!-- 10 Data flow -->
+<section class="slide"><div class="inner"><div class="body">
+  <div class="eyebrow r"><i data-lucide="route"></i>Data Flow</div>
+  <h2 class="r" style="--i:1">ข้อมูลไหลจากผู้ใช้ถึง Response</h2>
+  <div class="legend r" style="--i:2"><span><b style="background:var(--navy)"></b>Request</span><span><b style="background:var(--pink)"></b>Response</span></div>
+  <div class="diagram r" style="--i:3"><svg id="svgData" role="img" aria-label="Data flow User Frontend Backend Database External Response"></svg></div>
+</div></div></section>
+
+<!-- 11 Architecture -->
+<section class="slide"><div class="inner"><div class="body">
+  <div class="eyebrow r"><i data-lucide="boxes"></i>System Architecture</div>
+  <h2 class="r" style="--i:1">SPA แบบ Feature-based แยกชั้นชัดเจน</h2>
+  <div class="grid" style="grid-template-columns:2.2fr 1fr;gap:22px;align-items:stretch;margin-top:16px">
+    <div class="r" style="--i:2">
+      <div class="layer" style="background:var(--lav-t)"><div class="t">Presentation · React 19 + Router</div><div class="items"><span><i data-lucide="layout-grid"></i>Catalog</span><span><i data-lucide="inbox"></i>My Space</span><span><i data-lucide="file-plus"></i>Call Form</span><span><i data-lucide="search"></i>Search &amp; Detail</span><span><i data-lucide="stamp"></i>Approvals</span><span><i data-lucide="sparkles"></i>AI Panel</span></div></div>
+      <div class="down"><i data-lucide="chevrons-down"></i></div>
+      <div class="layer" style="background:var(--blue-t)"><div class="t">Services · single write point + permission check</div><div class="items"><span><i data-lucide="file-cog"></i>Call Service C8</span><span><i data-lucide="check-check"></i>Approval Service C14</span><span><i data-lucide="bot"></i>AI Service C15</span></div></div>
+      <div class="down"><i data-lucide="chevrons-down"></i></div>
+      <div class="layer" style="background:var(--pink-t)"><div class="t">Domain · pure functions</div><div class="items"><span><i data-lucide="grid-3x3"></i>Priority</span><span><i data-lucide="timer"></i>SLA</span><span><i data-lucide="git-branch"></i>State machine</span><span><i data-lucide="lock"></i>Access</span><span><i data-lucide="hash"></i>Numbering</span></div></div>
+      <div class="down"><i data-lucide="chevrons-down"></i></div>
+      <div class="layer" style="background:var(--navy-t)"><div class="t">Data · Repository + Zod</div><div class="items"><span><i data-lucide="database"></i>localStorage itsm.db.v1</span><span><i data-lucide="file-json"></i>Seed database.json</span></div></div>
+    </div>
+    <div class="r" style="--i:4;display:flex;flex-direction:column;justify-content:center;gap:12px">
+      <div class="card" style="text-align:center"><div class="ico c-blue" style="margin:0 auto 10px"><i data-lucide="server"></i></div><h3>Vite Middleware</h3><p>/api/ai/assist<br>เก็บ AZURE_AI_KEY ฝั่ง server</p></div>
+      <div class="down"><i data-lucide="chevrons-down"></i></div>
+      <div class="card" style="text-align:center"><div class="ico c-navy" style="margin:0 auto 10px"><i data-lucide="cloud"></i></div><h3>Azure AI Foundry</h3><p>External Service<br>Rule-based mock เป็น fallback</p></div>
+    </div>
+  </div>
+</div></div></section>
+
+<!-- 12 Tech stack -->
+<section class="slide"><div class="inner"><div class="body">
+  <div class="eyebrow r"><i data-lucide="cpu"></i>Technology Stack</div>
+  <h2 class="r" style="--i:1">เครื่องมือที่เลือกใช้</h2>
+  <p class="sub r" style="--i:2">TypeScript strict ทั้งโปรเจกต์ · Node.js 22 LTS</p>
+  <div class="grid g3">
+    <div class="card r" style="--i:3"><div class="ico c-blue"><i data-lucide="monitor"></i></div><h3>Frontend</h3><div class="chips" style="margin-top:10px"><span class="chip">React 19.3</span><span class="chip">Vite 8.3</span><span class="chip">React Router 8</span><span class="chip">TypeScript 6</span></div></div>
+    <div class="card r" style="--i:4"><div class="ico c-lav"><i data-lucide="palette"></i></div><h3>UI &amp; Form</h3><div class="chips" style="margin-top:10px"><span class="chip">Tailwind 4</span><span class="chip">shadcn/ui</span><span class="chip">Lucide</span><span class="chip">React Hook Form</span><span class="chip">Zod 4</span><span class="chip">Tiptap</span></div></div>
+    <div class="card r" style="--i:5"><div class="ico c-pink"><i data-lucide="database"></i></div><h3>State &amp; Data</h3><div class="chips" style="margin-top:10px"><span class="chip">Zustand 5</span><span class="chip">localStorage</span><span class="chip">Repository pattern</span></div></div>
+    <div class="card r" style="--i:6"><div class="ico c-navy"><i data-lucide="sparkles"></i></div><h3>AI</h3><div class="chips" style="margin-top:10px"><span class="chip">Vercel AI SDK 7</span><span class="chip">Azure AI Foundry</span></div></div>
+    <div class="card r" style="--i:7"><div class="ico c-blue"><i data-lucide="flask-conical"></i></div><h3>Testing</h3><div class="chips" style="margin-top:10px"><span class="chip">Vitest</span><span class="chip">Testing Library</span><span class="chip">fast-check (PBT)</span><span class="chip">Playwright</span></div></div>
+    <div class="card r" style="--i:8"><div class="ico c-lav"><i data-lucide="shield"></i></div><h3>Security</h3><div class="chips" style="margin-top:10px"><span class="chip">DOMPurify</span><span class="chip">.env.local</span><span class="chip">RBAC default-deny</span></div></div>
+  </div>
+</div></div></section>
+
+<!-- 13 Benefits -->
+<section class="slide"><div class="inner"><div class="body">
+  <div class="eyebrow r"><i data-lucide="trending-up"></i>Business Benefits</div>
+  <h2 class="r" style="--i:1">ผลที่องค์กรได้รับ</h2>
+  <p class="sub r" style="--i:2">เทียบกับระบบ ITSM เดิม</p>
+  <div class="grid g4">
+    <div class="card r" style="--i:3"><div class="big grad">8</div><div class="lbl">คอลัมน์ default<br>จากเดิม ~40</div></div>
+    <div class="card r" style="--i:4"><div class="big grad">P1–P4</div><div class="lbl">Priority อัตโนมัติ<br>จาก Urgency × Impact</div></div>
+    <div class="card r" style="--i:5"><div class="big grad">2</div><div class="lbl">ขั้นอนุมัติ<br>Department → Head</div></div>
+    <div class="card r" style="--i:6"><div class="big grad">100%</div><div class="lbl">การเปลี่ยนแปลงมี Timeline<br>(append-only)</div></div>
+  </div>
+  <div class="grid g3" style="margin-top:18px">
+    <div class="card r" style="--i:7"><div class="ico c-blue"><i data-lucide="clock"></i></div><h3>ลดเวลาแจ้ง</h3><p>Template + AI กรอกค่าให้</p></div>
+    <div class="card r" style="--i:8"><div class="ico c-lav"><i data-lucide="eye"></i></div><h3>โปร่งใส</h3><p>เห็นสถานะและ Time Left ทันที</p></div>
+    <div class="card r" style="--i:9"><div class="ico c-pink"><i data-lucide="scale"></i></div><h3>ตรวจสอบได้</h3><p>ทุก action บันทึกใน Timeline</p></div>
+  </div>
+</div></div></section>
+
+<!-- 14 Security -->
+<section class="slide"><div class="inner"><div class="body">
+  <div class="eyebrow r"><i data-lucide="shield-check"></i>Security Overview</div>
+  <h2 class="r" style="--i:1">ความปลอดภัยตั้งแต่ชั้นออกแบบ</h2>
+  <p class="sub r" style="--i:2">ผ่านนโยบาย security และ data privacy ของโครงการ</p>
+  <div class="grid g3">
+    <div class="card r" style="--i:3"><div class="ico c-blue"><i data-lucide="lock"></i></div><h3>RBAC default-deny</h3><p>ตรวจสิทธิ์ทั้งที่ route และ service ก่อน commit</p></div>
+    <div class="card r" style="--i:4"><div class="ico c-lav"><i data-lucide="shield-alert"></i></div><h3>Sanitize rich text</h3><p>DOMPurify allow-list ก่อนแสดงผล</p></div>
+    <div class="card r" style="--i:5"><div class="ico c-pink"><i data-lucide="key-round"></i></div><h3>Secret อยู่ฝั่ง server</h3><p>AZURE_AI_KEY อยู่ใน .env.local ไม่เข้า bundle</p></div>
+    <div class="card r" style="--i:6"><div class="ico c-blue"><i data-lucide="eye-off"></i></div><h3>Log ไม่มี PII</h3><p>Logger ตัด name, email, phone, comment</p></div>
+    <div class="card r" style="--i:7"><div class="ico c-lav"><i data-lucide="scroll-text"></i></div><h3>Audit trail</h3><p>CallHistory append-only ทุกการเปลี่ยนแปลง</p></div>
+    <div class="card r" style="--i:8"><div class="ico c-pink"><i data-lucide="user-x"></i></div><h3>ข้อมูลสมมติ (PDPA)</h3><p>AI รับเฉพาะข้อความที่พิมพ์ + ชื่อหน้า</p></div>
+  </div>
+</div></div></section>
+
+<!-- 15 Roadmap -->
+<section class="slide"><div class="inner"><div class="body">
+  <div class="eyebrow r"><i data-lucide="map"></i>Implementation Roadmap</div>
+  <h2 class="r" style="--i:1">6 Phase · หยุดยืนยันทุกจบ Phase</h2>
+  <p class="sub r" style="--i:2">32 tasks · Build status: approved with warnings</p>
+  <div class="tl r" style="--i:3;margin-top:40px">
+    <div class="ph done"><div class="dot"><i data-lucide="check"></i></div><h4>1 Setup</h4><p>Vite · Tailwind<br>Shell · Logger</p></div>
+    <div class="ph done"><div class="dot"><i data-lucide="check"></i></div><h4>2 Core</h4><p>Domain · Data<br>Requestor flow</p></div>
+    <div class="ph skip"><div class="dot"><i data-lucide="minus"></i></div><h4>3 Backend</h4><p>N/A<br>ใช้ localStorage</p></div>
+    <div class="ph done"><div class="dot"><i data-lucide="check"></i></div><h4>4 Features</h4><p>Agent · Approval<br>AI Assistant</p></div>
+    <div class="ph done"><div class="dot"><i data-lucide="check"></i></div><h4>5 Test</h4><p>234 tests<br>3 E2E flows</p></div>
+    <div class="ph skip"><div class="dot"><i data-lucide="minus"></i></div><h4>6 Deploy</h4><p>ข้ามรอบนี้<br>local only</p></div>
+  </div>
+  <div class="card r" style="--i:5;margin-top:44px"><div class="eyebrow" style="margin-bottom:12px"><i data-lucide="rocket"></i>Next</div><div class="chips"><span class="chip">Backend + API จริง (เปลี่ยนที่ Repository)</span><span class="chip">SSO / AD</span><span class="chip">Knowledge Base</span><span class="chip">Survey</span><span class="chip">Problem Management</span></div></div>
+</div></div></section>
+
+<!-- 16 Kiro & AI-DLC -->
+<section class="slide"><div class="inner"><div class="body">
+  <div class="eyebrow r"><i data-lucide="bot"></i>Kiro + AI-DLC</div>
+  <h2 class="r" style="--i:1">Spec-driven ตั้งแต่ไอเดียถึงโค้ด</h2>
+  <p class="sub r" style="--i:2">AI-DLC แบ่งงานเป็น phase ชัดเจน Kiro ลงมือทำและตรวจตาม Spec</p>
+  <div class="row r" style="--i:3;justify-content:center;gap:10px;margin-bottom:30px">
+    <div class="step"><div class="ico c-blue"><i data-lucide="compass"></i></div>Context</div><span class="arrow"><i data-lucide="chevron-right"></i></span>
+    <div class="step"><div class="ico c-lav"><i data-lucide="list-checks"></i></div>Requirements<small style="font-weight:300;color:var(--muted)">34 stories</small></div><span class="arrow"><i data-lucide="chevron-right"></i></span>
+    <div class="step"><div class="ico c-pink"><i data-lucide="pen-tool"></i></div>Design<small style="font-weight:300;color:var(--muted)">15 components</small></div><span class="arrow"><i data-lucide="chevron-right"></i></span>
+    <div class="step"><div class="ico c-blue"><i data-lucide="clipboard-list"></i></div>Tasks<small style="font-weight:300;color:var(--muted)">32 tasks</small></div><span class="arrow"><i data-lucide="chevron-right"></i></span>
+    <div class="step"><div class="ico c-navy"><i data-lucide="hammer"></i></div>Build<small style="font-weight:300;color:var(--muted)">verify</small></div>
+  </div>
+  <div class="grid g4">
+    <div class="card r" style="--i:4"><div class="ico c-blue"><i data-lucide="link"></i></div><h3>Traceability</h3><p>ทุก Story ผูก Component · API · Entity ครบ 34/34</p></div>
+    <div class="card r" style="--i:5"><div class="ico c-lav"><i data-lucide="notebook-pen"></i></div><h3>Decision log</h3><p>บันทึกเหตุผลทุก phase ใน decisions-*.md</p></div>
+    <div class="card r" style="--i:6"><div class="ico c-pink"><i data-lucide="book-lock"></i></div><h3>Steering &amp; Policy</h3><p>กฎ security · design system · privacy ใช้ซ้ำทั้งโครงการ</p></div>
+    <div class="card r" style="--i:7"><div class="ico c-navy"><i data-lucide="user-round-check"></i></div><h3>Human-in-the-loop</h3><p>หยุดรอผู้ใช้ยืนยันทุกจบ phase พร้อม audit และ build report</p></div>
+  </div>
+</div></div></section>
+
+<!-- 17 Closing -->
+<section class="slide"><div class="inner">
+  <div class="blob" style="width:440px;height:440px;background:var(--pink);top:-120px;left:-80px"></div>
+  <div class="blob" style="width:380px;height:380px;background:var(--lav);bottom:-100px;right:-60px"></div>
+  <div class="body" style="text-align:center">
+    <div class="eyebrow r" style="justify-content:center"><i data-lucide="heart-handshake"></i>Closing</div>
+    <h1 class="r" style="--i:1;font-size:clamp(40px,6vw,76px)">แจ้งง่าย <span class="grad">ติดตามชัด</span><br>ควบคุมได้</h1>
+    <p class="sub r" style="--i:2;margin:22px auto 30px;max-width:640px">ITSM Support Desk · สร้างด้วย Kiro และ AI-DLC</p>
+    <div class="chips r" style="--i:3;justify-content:center"><span class="chip"><i data-lucide="play"></i>npm run dev</span><span class="chip"><i data-lucide="globe"></i>localhost:5173</span></div>
+    <p class="r" style="--i:4;margin-top:34px;font-size:22px;font-weight:600;color:var(--navy)">ขอบคุณครับ</p>
+  </div>
+</div></section>
+
+</main>
+
+<div id="brand"><i data-lucide="headset"></i>ITSM Support Desk</div>
+<div class="navb"><button id="prev" aria-label="สไลด์ก่อนหน้า"><i data-lucide="chevron-left"></i></button><button id="next" aria-label="สไลด์ถัดไป"><i data-lucide="chevron-right"></i></button></div>
+<div id="count" aria-live="polite">1 / 1</div>
+
+<script>
+/* ---------- SVG helpers ---------- */
+const NS='http://www.w3.org/2000/svg';
+const COL={navy:'#192060',blue:'#8aa7b9',lav:'#c2afd5',pink:'#e2adb7'};
+const MK={navy:'#192060',blue:'#6f90a5',pink:'#d4798e'};
+function S(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function init(id,vb){const s=document.getElementById(id);s.setAttribute('viewBox',vb);const d=S('defs',{},s);
+  for(const n in MK){const m=S('marker',{id:id+'-'+n,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:7,markerHeight:7,orient:'auto'},d);S('path',{d:'M0 0L10 5L0 10z',fill:MK[n]},m)}return s}
+function T(p,x,y,str,o={}){const t=S('text',{x,y,'text-anchor':o.a||'middle','font-size':o.s||15,'font-weight':o.w||500,fill:o.f||COL.navy},p);
+  if(o.halo){t.setAttribute('stroke','#fff');t.setAttribute('stroke-width','5');t.setAttribute('paint-order','stroke')}
+  const L=String(str).split('\n'),lh=(o.s||15)*1.3,y0=y-(o.v===false?0:(L.length-1)*lh/2)+(o.s||15)*.35;
+  L.forEach((l,i)=>{const ts=S('tspan',{x,y:y0+i*lh},t);ts.textContent=l});return t}
+function box(s,x,y,w,h,txt,o={}){S('rect',{x,y,width:w,height:h,rx:o.rx??14,fill:o.fill||'#fff',stroke:o.stroke||COL.blue,'stroke-width':o.sw||2},s);
+  T(s,x+w/2,y+h/2,txt,{f:o.tc||COL.navy,s:o.s||15,w:o.w||500})}
+function dia(s,cx,cy,w,h,txt){S('polygon',{points:`${cx},${cy-h/2} ${cx+w/2},${cy} ${cx},${cy+h/2} ${cx-w/2},${cy}`,fill:'rgba(226,173,183,.35)',stroke:COL.pink,'stroke-width':2},s);T(s,cx,cy,txt,{s:14,w:600})}
+function term(s,cx,cy,rx,ry,txt,fill,tc){S('ellipse',{cx,cy,rx,ry,fill:fill||COL.navy},s);T(s,cx,cy,txt,{f:tc||'#fff',s:15,w:600})}
+function arr(s,id,pts,o={}){const c=o.c||'navy';S('path',{d:'M'+pts.map(p=>p.join(' ')).join('L'),fill:'none',stroke:MK[c],'stroke-width':o.w||2.2,'stroke-dasharray':o.d?'7 5':'none','stroke-linejoin':'round','marker-end':`url(#${id}-${c})`},s);
+  if(o.l)T(s,o.lx,o.ly,o.l,{s:13,f:MK[c]==='#192060'?'#192060':'#5b6285',w:600,a:o.la||'middle',halo:true})}
+
+/* ---------- Slide 6: business workflow ---------- */
+(function(){const id='svgFlow',s=init(id,'0 0 1300 690');
+  term(s,70,105,38,34,'เริ่ม');
+  box(s,150,73,150,64,'เลือกบริการ\nหรือถาม AI',{stroke:COL.blue});
+  box(s,340,73,160,64,'กรอกฟอร์ม\nSupport Call',{stroke:COL.blue});
+  dia(s,590,105,140,96,'ข้อมูล\nครบ?');
+  box(s,710,66,180,78,'คำนวณ Priority\nออกเลข Ticket',{stroke:COL.navy});
+  dia(s,1010,105,150,96,'ต้อง\nอนุมัติ?');
+  box(s,920,258,180,64,'Department\nApproval',{stroke:COL.lav});
+  box(s,700,258,180,64,'Head\nApproval',{stroke:COL.lav});
+  dia(s,540,290,150,96,'อนุมัติ\nครบ?');
+  box(s,190,258,190,64,'ปฏิเสธ\n→ Cancelled',{fill:'rgba(226,173,183,.35)',stroke:COL.pink});
+  box(s,450,438,180,64,'เข้าคิวกลุ่ม\nเริ่มนับ SLA',{stroke:COL.navy});
+  box(s,690,438,150,64,'Assign\nเจ้าหน้าที่',{stroke:COL.navy});
+  box(s,930,438,140,64,'In Process',{stroke:COL.navy});
+  box(s,1110,438,130,64,'Resolved\n+ Closure',{stroke:COL.navy});
+  dia(s,1000,620,210,96,'ผู้แจ้งยืนยัน /\nครบ 7 วัน?');
+  term(s,710,620,90,34,'Closed',COL.navy);
+  arr(s,id,[[108,105],[150,105]]);arr(s,id,[[300,105],[340,105]]);arr(s,id,[[500,105],[520,105]]);
+  arr(s,id,[[660,105],[710,105]],{l:'ครบ',lx:685,ly:92});
+  arr(s,id,[[590,57],[590,20],[420,20],[420,73]],{l:'แก้ไข',lx:505,ly:20});
+  arr(s,id,[[890,105],[935,105]]);
+  arr(s,id,[[1010,153],[1010,258]],{l:'ใช่',lx:1030,ly:205});
+  arr(s,id,[[920,290],[880,290]]);arr(s,id,[[700,290],[615,290]]);
+  arr(s,id,[[465,290],[380,290]],{l:'ไม่',lx:422,ly:278});
+  arr(s,id,[[540,338],[540,438]],{l:'ใช่',lx:560,ly:395});
+  arr(s,id,[[1085,105],[1200,105],[1200,385],[540,385]],{l:'ไม่ต้อง',lx:1200,ly:240});
+  arr(s,id,[[630,470],[690,470]]);arr(s,id,[[840,470],[930,470]]);arr(s,id,[[1070,470],[1110,470]]);
+  arr(s,id,[[1175,502],[1175,620],[1105,620]]);
+  arr(s,id,[[895,620],[800,620]],{l:'ใช่',lx:847,ly:608});
+  arr(s,id,[[1000,572],[1000,502]],{c:'pink',l:'Re-open ≤ 7 วัน',lx:1012,ly:540,la:'start'});
+  T(s,260,420,'ผู้แจ้งยกเลิกได้\nก่อนปิดงาน',{s:13,f:'#5b6285',w:400});
+})();
+
+/* ---------- Slide 7: role swimlane ---------- */
+(function(){const id='svgRole',s=init(id,'0 0 1340 570');
+  const lanes=[['Requestor','ผู้แจ้ง',COL.blue],['Approver','ผู้อนุมัติ',COL.lav],['Agent','เจ้าหน้าที่',COL.navy],['Admin','ผู้ดูแล',COL.pink]];
+  lanes.forEach((l,i)=>{const y=i*140;S('rect',{x:0,y,width:1340,height:130,rx:16,fill:l[2],'fill-opacity':i==2?.09:.2},s);
+    S('rect',{x:0,y,width:140,height:130,rx:16,fill:l[2]},s);
+    T(s,70,y+58,l[0],{f:i==2?'#fff':COL.navy,s:18,w:700});T(s,70,y+84,l[1],{f:i==2?'#fff':COL.navy,s:14,w:400})});
+  box(s,180,35,150,60,'แจ้งเรื่อง /\nขอบริการ',{stroke:COL.blue});
+  box(s,350,175,150,60,'Department\nApprove',{stroke:COL.lav});
+  box(s,530,175,150,60,'Head\nApprove',{stroke:COL.lav});
+  box(s,730,315,150,60,'รับเรื่องในคิว\nกลุ่มตัวเอง',{stroke:COL.navy});
+  box(s,920,315,150,60,'Assign +\nIn Process',{stroke:COL.navy});
+  box(s,1110,315,150,60,'Resolved +\nClosure',{stroke:COL.navy});
+  box(s,1110,35,150,60,'ยืนยันผล\nRe-open ≤ 7 วัน',{stroke:COL.blue});
+  box(s,900,455,230,60,'ดูทุกเรื่อง (อ่านอย่างเดียว)\nตรวจ Timeline',{stroke:COL.pink});
+  box(s,330,455,230,60,'ดูแล catalog / template\n(ผ่าน database.json)',{stroke:COL.pink});
+  arr(s,id,[[255,95],[255,205],[350,205]]);
+  arr(s,id,[[500,205],[530,205]]);
+  arr(s,id,[[400,175],[400,128],[310,128],[310,95]],{c:'pink',l:'ปฏิเสธ',lx:355,ly:120});
+  arr(s,id,[[680,205],[760,205],[760,315]]);
+  arr(s,id,[[330,65],[850,65],[850,315]],{d:1,c:'blue',l:'ไม่ต้องอนุมัติ',lx:590,ly:52});
+  arr(s,id,[[880,345],[920,345]]);arr(s,id,[[1070,345],[1110,345]]);
+  arr(s,id,[[1185,315],[1185,95]],{l:'แจ้งผล',lx:1198,ly:205,la:'start'});
+  arr(s,id,[[1015,455],[1015,375]],{d:1,c:'blue',l:'audit',lx:1040,ly:420,la:'start'});
+})();
+
+/* ---------- Slide 9: ER diagram ---------- */
+(function(){const id='svgER',s=init(id,'0 -22 1330 830');const E={};
+  const M={core:[COL.navy,'#fff'],cat:[COL.lav,COL.navy],ppl:[COL.blue,COL.navy],ci:[COL.pink,COL.navy]};
+  function ent(n,m,x,y,w,f){const h=28+f.length*19+6;E[n]={x,y,w,h};const [bg,fg]=M[m];
+    S('rect',{x,y,width:w,height:h,rx:12,fill:'#fff',stroke:bg,'stroke-width':2.2},s);
+    S('path',{d:`M${x} ${y+28}V${y+12}a12 12 0 0 1 12-12H${x+w-12}a12 12 0 0 1 12 12V${y+28}z`,fill:bg},s);
+    T(s,x+12,y+14,n,{a:'start',f:fg,s:14,w:700});
+    f.forEach((r,i)=>{const yy=y+28+i*19+14,k=r[0];
+      if(k)T(s,x+10,yy,k,{a:'start',s:10.5,w:700,f:k=='PK'?'#b8860b':'#6f90a5'});
+      T(s,x+34,yy,r[1],{a:'start',s:12.5,w:k=='PK'?700:400,f:COL.navy})})}
+  function lab(p,q,t){const dx=q[0]-p[0],dy=q[1]-p[1],d=Math.hypot(dx,dy)||1,ux=dx/d,uy=dy/d;
+    T(s,p[0]+ux*14-uy*11,p[1]+uy*14+ux*11,t,{s:13,w:700,f:COL.navy})}
+  function rel(pts,a,b,o={}){S('path',{d:'M'+pts.map(p=>p.join(' ')).join('L'),fill:'none',stroke:o.c||'#8a93b8','stroke-width':1.8,'stroke-dasharray':o.d?'6 4':'none','stroke-linejoin':'round'},s);
+    lab(pts[0],pts[1],a);lab(pts[pts.length-1],pts[pts.length-2],b)}
+  T(s,0,-6,'CATALOG',{a:'start',s:11,w:700,f:'#8f78b0'});T(s,0,248,'CONFIG ITEM',{a:'start',s:11,w:700,f:'#c0788a'});
+  T(s,440,222,'TICKET CORE',{a:'start',s:11,w:700,f:COL.navy});T(s,800,232,'PEOPLE & ORG',{a:'start',s:11,w:700,f:'#5f8197'});
+  ent('ServiceCategory','cat',0,0,210,[['PK','id'],['FK','parentId (self)'],['','name'],['','icon'],['','slaStartsAfterApproval']]);
+  ent('ServiceDefinition','cat',250,0,210,[['PK','id'],['FK','categoryId'],['FK','templateId'],['FK','serviceId'],['','name']]);
+  ent('Template','cat',500,0,210,[['PK','id'],['','name'],['','callType'],['FK','defaultQueueId'],['','requiresApproval[]'],['','defaultUrgency / Impact']]);
+  ent('SupportCall','core',440,230,270,[['PK','id'],['','number'],['','callType'],['','priority  (P1–P4)'],['','status'],['','dueDate'],['FK','requestorId'],['FK','openedByUserId'],['FK','assignedToId'],['FK','templateId'],['FK','serviceId'],['FK','productId'],['FK','itemId'],['FK','queueId']]);
+  ent('Service','ci',0,260,200,[['PK','id'],['','name']]);
+  ent('Product','ci',0,345,200,[['PK','id'],['','name'],['','serialNumber'],['','version'],['FK','assignedToId']]);
+  ent('Item','ci',0,505,200,[['PK','id'],['FK','productId'],['','name']]);
+  ent('User','ppl',800,245,220,[['PK','id'],['','name'],['','role'],['FK','managerId (self)'],['','groupIds[]'],['','department']]);
+  ent('Approval','core',800,430,220,[['PK','id'],['FK','callId'],['','approvalType'],['FK','approverId'],['','decision'],['','done']]);
+  ent('Group','ppl',1110,245,200,[['PK','id'],['','name'],['FK','queueId']]);
+  ent('Queue','ppl',1110,390,200,[['PK','id'],['','name'],['FK','groupId']]);
+  ent('CallHistory','core',430,640,220,[['PK','id'],['FK','callId'],['','at'],['FK','byUserId'],['','action'],['','toStatus']]);
+  ent('Activity','core',130,640,220,[['PK','id'],['FK','callId'],['','type'],['','subject'],['','status'],['FK','ownerId']]);
+  const e=E,sc=e.SupportCall;
+  rel([[210,70],[250,70]],'1','N');rel([[500,70],[460,70]],'1','N');
+  rel([[605,e.Template.h],[605,230]],'1','N');
+  rel([[200,290],[440,290]],'1','N');rel([[200,400],[440,400]],'1','N');rel([[200,522],[440,522]],'1','N');
+  rel([[100,505],[100,e.Product.y+e.Product.h]],'N','1');
+  rel([[800,290],[710,290]],'1','N');
+  rel([[800,490],[710,490]],'N','1');
+  rel([[910,430],[910,245+e.User.h]],'N','1');
+  rel([[1020,300],[1110,300]],'N','N',{d:1,c:'#d4798e'});
+  T(s,1065,322,'groupIds[]',{s:11,w:600,f:'#c0788a'});
+  rel([[1210,245+e.Group.h],[1210,390]],'1','1');
+  rel([[1210,390+e.Queue.h],[1210,600],[660,600],[660,230+sc.h]],'1','N');
+  rel([[540,640],[540,230+sc.h]],'N','1');
+  rel([[240,640],[240,620],[480,620],[480,230+sc.h]],'N','1');
+})();
+
+/* ---------- Slide 10: data flow ---------- */
+(function(){const id='svgData',s=init(id,'0 0 1300 540');
+  const n=(x,w,t,st)=>{box(s,x,72,w,76,t,{stroke:st||COL.navy})};
+  n(20,150,'ผู้ใช้\n(Browser)',COL.blue);n(240,180,'Frontend\nReact SPA',COL.lav);n(490,200,'Service + Rules\nC8 · C14 · Domain',COL.navy);n(760,170,'Repository\n+ Zod validate',COL.navy);n(1000,230,'Database\nlocalStorage itsm.db.v1',COL.pink);
+  [[95,0],[330,0],[590,0],[845,0],[1115,0]].forEach((p,i)=>{S('circle',{cx:[20,240,490,760,1000][i]+8,cy:72,r:13,fill:COL.navy},s);T(s,[20,240,490,760,1000][i]+8,72,i+1,{f:'#fff',s:13,w:700})});
+  arr(s,id,[[170,110],[240,110]],{l:'คลิก / กรอก',lx:205,ly:96});
+  arr(s,id,[[420,110],[490,110]],{l:'เรียก service',lx:455,ly:96});
+  arr(s,id,[[690,110],[760,110]],{l:'อ่าน/เขียน',lx:725,ly:96});
+  arr(s,id,[[930,110],[1000,110]],{l:'commit',lx:965,ly:96});
+  arr(s,id,[[1115,148],[1115,210],[95,210],[95,148]],{c:'pink',l:'Response: Result<T> → แสดงผล Status · Time Left · Timeline',lx:600,ly:210});
+  box(s,240,362,180,76,'Rule-based mock\n(default / fallback)',{stroke:COL.blue});
+  box(s,490,362,200,76,'Vite middleware\n/api/ai/assist\nใส่ AZURE_AI_KEY',{stroke:COL.blue});
+  box(s,790,362,230,76,'Azure AI Foundry\nExternal Service',{stroke:COL.pink,fill:'rgba(226,173,183,.18)'});
+  arr(s,id,[[290,148],[290,362]],{l:'mock',lx:312,ly:300,la:'start'});
+  arr(s,id,[[360,148],[360,320],[540,320],[540,362]],{l:'POST',lx:450,ly:332});
+  arr(s,id,[[690,400],[790,400]],{l:'HTTPS',lx:740,ly:386});
+  arr(s,id,[[905,438],[905,490],[590,490],[590,438]],{c:'pink',l:'คำตอบ JSON',lx:750,ly:490});
+  arr(s,id,[[650,362],[650,262],[400,262],[400,148]],{c:'pink',l:'คำแนะนำ → ผู้ใช้กด OK',lx:525,ly:262});
+  T(s,1150,400,'ผู้ใช้ยืนยันเองก่อน\nบันทึกลงฟอร์ม',{s:13,f:'#5b6285',w:400});
+})();
+
+/* ---------- Deck engine ---------- */
+const slides=[...document.querySelectorAll('.slide')];let cur=0;
+const bar=document.getElementById('bar'),cnt=document.getElementById('count');
+function go(n){n=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,i)=>{s.classList.toggle('active',i===n);s.classList.toggle('past',i<n)});
+  if(slides[n])slides[n].querySelector('.inner').scrollTop=0;cur=n;bar.style.width=((n+1)/slides.length*100)+'%';cnt.textContent=(n+1)+' / '+slides.length;history.replaceState(null,'','#'+(n+1))}
+const inner=()=>slides[cur].querySelector('.inner');
+const canScroll=d=>{const e=inner();return d>0?e.scrollTop+e.clientHeight<e.scrollHeight-4:e.scrollTop>4}
+document.addEventListener('keydown',e=>{if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();go(cur+1)}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(cur-1)}
+  else if(e.key==='Home')go(0);else if(e.key==='End')go(slides.length-1);
+  else if(e.key==='ArrowDown'&&!canScroll(1))go(cur+1);else if(e.key==='ArrowUp'&&!canScroll(-1))go(cur-1)});
+let lock=0;
+addEventListener('wheel',e=>{const d=e.deltaY;if(Math.abs(d)<8||canScroll(d))return;const t=Date.now();if(t-lock<750)return;lock=t;go(cur+(d>0?1:-1))},{passive:true});
+let tx=0,ty=0;
+addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50)go(cur+(dx<0?1:-1));
+  else if(Math.abs(dy)>60&&!canScroll(-dy))go(cur+(dy<0?1:-1))},{passive:true});
+document.getElementById('prev').onclick=()=>go(cur-1);document.getElementById('next').onclick=()=>go(cur+1);
+lucide.createIcons();
+go((parseInt(location.hash.slice(1))||1)-1);
+</script>
+</body>
+</html>
